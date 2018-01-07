@@ -33,11 +33,6 @@ that we have created in the `__init__` function.
 
 COMMAND_FREQUENCY = 10 # in HZ
 
-# PID Control Inits
-THROTTLE_KP = 0.3
-THROTTLE_KI = 0.003
-THROTTLE_KD = 4.0
-
 class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')
@@ -59,8 +54,7 @@ class DBWNode(object):
 
         args = [vehicle_mass, fuel_capacity, brake_deadband, decel_limit,
                 accel_limit, wheel_radius, wheel_base,
-                steer_ratio, max_lat_accel, max_steer_angle,
-                THROTTLE_KP, THROTTLE_KI, THROTTLE_KD]
+                steer_ratio, max_lat_accel, max_steer_angle]
         self.controller = Controller(*args)
 
         # Subscriptions
@@ -84,6 +78,7 @@ class DBWNode(object):
             throttle, brake, steering = self.controller.control(self.twist_cmd.twist.linear,
                                                                 self.twist_cmd.twist.angular,
                                                                 self.current_velocity.twist.linear)
+            self.publish(throttle, brake, steering)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
@@ -106,7 +101,7 @@ class DBWNode(object):
 
 
     # Helper for subscriber below.
-     def twist_cmd(self, msg):
+    def twist_cmd_cb(self, msg):
          """Subscribe to twist_cmd."""
          self.twist_cmd = msg
 

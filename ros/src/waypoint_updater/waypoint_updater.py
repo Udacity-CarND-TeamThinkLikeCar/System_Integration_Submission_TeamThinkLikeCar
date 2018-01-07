@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
 import math
+import numpy as np
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -39,21 +40,37 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
         self.waypoints = None
         self.waypoints_len = None
-
-        self.final_waypoints = Lane
-
+        self.lookahead_wps = 0
+        self.max_velocity = 0
 
         rospy.spin()
 
     def pose_cb(self, msg):
-        self.final_waypoints_pub.publish(self.final_waypoints)
+
+        dl = lambda a, b: math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+        d = []  # temporary list to capture distance of waypoints from current position
+        if self.waypoints:
+            for waypoint in self.waypoints.waypoints:
+                d.append(dl(waypoint.pose.pose.position, msg.pose.position))
+            self.pos_point = np.argmin(d)
+
+            self.waypoints_to_publish = self.waypoints.waypoints[self.pos_point: self.pos_point + self.lookahead_wps + 1]
+            self.Publish()
 
 
+    def Publish(self):
+        """Publish a lane to final_waypoints"""
+        lane = Lane()
+        lane.header = self.waypoints.header
+        lane.waypoints = self.waypoints_to_publish
+        self.final_waypoints_pub.publish(lane)
 
-    def waypoints_cb(self, msg):
+    def waypoints_cb(self, waypoints):
         """Collect waypoints and record waypoints lenght."""
-        self.waypoints = msg.waypoints
-        self.waypoints_len = len(self.waypoint)
+        self.waypoints = waypoints
+        self.waypoints_len = len(self.waypoints.waypoints)
+        self.lookahead_wps = min(LOOKAHEAD_WPS, self.waypoints_len // 2)
+        # add more later
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
