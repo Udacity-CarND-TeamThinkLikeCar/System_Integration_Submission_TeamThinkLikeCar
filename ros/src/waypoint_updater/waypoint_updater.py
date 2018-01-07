@@ -37,16 +37,23 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+        self.waypoints = None
+        self.waypoints_len = None
+
+        self.final_waypoints = Lane
+
 
         rospy.spin()
 
     def pose_cb(self, msg):
-        # TODO: Implement
-        pass
+        self.final_waypoints_pub.publish(self.final_waypoints)
 
-    def waypoints_cb(self, waypoints):
-        # TODO: Implement
-        pass
+
+
+    def waypoints_cb(self, msg):
+        """Collect waypoints and record waypoints lenght."""
+        self.waypoints = msg.waypoints
+        self.waypoints_len = len(self.waypoint)
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
