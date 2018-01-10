@@ -38,6 +38,7 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.waypoints = []
+        self.prevFinalWaypoints = []
         self.waypoint_index = 0
 
         rospy.spin()
@@ -49,9 +50,27 @@ class WaypointUpdater(object):
         lane.header.stamp = rospy.Time(0)
         limited_waypoints = []
 
-        ####### Need to fill more here
+        rospy.loginfo('Current Pos Received as - j1:%s',
+                      msg)
+	#header: 
+	#  seq: 6500
+	#  stamp: 
+	#    secs: 1515547063
+	#    nsecs:  34849882
+	#  frame_id: ''
+	#level: 2
+	#name: "/waypoint_updater"
+	#msg: "Current Pos Received as - j1:header: \n  seq: 6780\n  stamp: \n    secs: 1515547063\n\
+	#  \    nsecs:  29352903\n  frame_id: \"/world\"\npose: \n  position: \n    x: 1497.886\n\
+	#  \    y: 1183.949\n    z: 0.02347874\n  orientation: \n    x: -0.0\n    y: 0.0\n\
+	#  \    z: 0.00512600956436\n    w: -0.999986861927"
+	#file: "waypoint_updater.py"
+	#function: "pose_cb"
+	#line: 54
 
-        for index in range(LOOKAHEAD_WPS):
+        ####### Need to fill more here
+        index = 0 # Should Next nearest waypoint index in self.waypoints
+        for index in range(index + LOOKAHEAD_WPS):
             limited_waypoints.append(self.waypoints[index])
 
         lane.waypoints = limited_waypoints
@@ -91,3 +110,4 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
