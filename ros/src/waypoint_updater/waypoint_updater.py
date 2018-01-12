@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import math
 
@@ -31,21 +32,97 @@ class WaypointUpdater(object):
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+    #    rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+    #    rospy.Subscriber('/obstacle_waypoint', Int32, self.obstacle_cb) // Assuming Int32 here
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        # TODO: Add other member variables you need below
+        self.waypoints = []
+        self.prevFinalWaypoints = []
+        self.waypoint_index = 0
 
         rospy.spin()
 
+    def euclidean_dist(self, waypt1, waypt2):
+        return math.sqrt(
+            (waypt1.pose.pose.position.x - waypt2.pose.pose.position.x)**2
+            + (waypt1.pose.pose.position.y - waypt2.pose.pose.position.y)**2
+            + (waypt1.pose.pose.position.z - waypt2.pose.pose.position.z)**2)
+
+
     def pose_cb(self, msg):
-        # TODO: Implement
+
+        lane = Lane()
+        lane.header.frame_id = '/finalWayPoints'
+        lane.header.stamp = rospy.Time(0)
+        limited_waypoints = []
+
+        rospy.loginfo('Current Pos Received as - j1:%s',
+                      msg)
+	#header: 
+	#  seq: 6500
+	#  stamp: 
+	#    secs: 1515547063
+	#    nsecs:  34849882
+	#  frame_id: ''
+	#level: 2
+	#name: "/waypoint_updater"
+	#msg: "Current Pos Received as - j1:header: \n  seq: 6780\n  stamp: \n    secs: 1515547063\n\
+	#  \    nsecs:  29352903\n  frame_id: \"/world\"\npose: \n  position: \n    x: 1497.886\n\
+	#  \    y: 1183.949\n    z: 0.02347874\n  orientation: \n    x: -0.0\n    y: 0.0\n\
+	#  \    z: 0.00512600956436\n    w: -0.999986861927"
+	#file: "waypoint_updater.py"
+	#function: "pose_cb"
+	#line: 54
+
+        ####### Need to fill more here
+
+
+       # if(len(self.prevFinalWaypoints)):
+        p = Waypoint()
+
+        p.pose.pose.position.x = msg.pose.position.x
+        p.pose.pose.position.y = msg.pose.position.y
+        p.pose.pose.position.z = msg.pose.position.z
+
+        shortest_dist = 999
+        uptoCount = LOOKAHEAD_WPS # Since we sent 200 pts last time so the nearest pt could be max at 201 distance
+
+        remaining_pts = (len(self.waypoints) - self.waypoint_index)
+
+        if(remaining_pts < uptoCount):
+            uptoCount = remaining_pts
+
+        index = self.waypoint_index
+
+        for i in range (self.waypoint_index, (self.waypoint_index + uptoCount)):
+            wpdist = self.euclidean_dist(p, self.waypoints[i])
+
+            if(wpdist < shortest_dist):
+                index = i # Should Next nearest waypoint index in self.waypoints
+
+        self.waypoint_index = index
+        filler_index = self.waypoint_index
+
+        # Fill the waypoints
+        for filler_index in range(self.waypoint_index, self.waypoint_index + uptoCount):
+            limited_waypoints.append(self.waypoints[filler_index])
+
+        # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be emplty so car can stop
+        if (LOOKAHEAD_WPS > uptoCount):
+            for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
+                limited_waypoints.append(Waypoint())
+
+
+
+        self.prevFinalWaypoints = limited_waypoints
+        lane.waypoints = limited_waypoints
+        self.final_waypoints_pub.publish(lane)
+
         pass
 
-    def waypoints_cb(self, waypoints):
-        # TODO: Implement
+    def waypoints_cb(self, Lane):
+        self.waypoints = Lane.waypoints
         pass
 
     def traffic_cb(self, msg):
@@ -76,3 +153,4 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
