@@ -43,6 +43,13 @@ class WaypointUpdater(object):
 
         rospy.spin()
 
+    def euclidean_dist(self, waypt1, waypt2):
+        return math.sqrt(
+            (waypt1.pose.pose.position.x - waypt2.pose.pose.position.x)**2
+            + (waypt1.pose.pose.position.y - waypt2.pose.pose.position.y)**2
+            + (waypt1.pose.pose.position.z - waypt2.pose.pose.position.z)**2)
+
+
     def pose_cb(self, msg):
 
         lane = Lane()
@@ -69,10 +76,46 @@ class WaypointUpdater(object):
 	#line: 54
 
         ####### Need to fill more here
-        index = 0 # Should Next nearest waypoint index in self.waypoints
-        for index in range(index + LOOKAHEAD_WPS):
-            limited_waypoints.append(self.waypoints[index])
 
+
+       # if(len(self.prevFinalWaypoints)):
+        p = Waypoint()
+
+        p.pose.pose.position.x = msg.pose.position.x
+        p.pose.pose.position.y = msg.pose.position.y
+        p.pose.pose.position.z = msg.pose.position.z
+
+        shortest_dist = 999
+        uptoCount = LOOKAHEAD_WPS # Since we sent 200 pts last time so the nearest pt could be max at 201 distance
+
+        remaining_pts = (len(self.waypoints) - self.waypoint_index)
+
+        if(remaining_pts < uptoCount):
+            uptoCount = remaining_pts
+
+        index = self.waypoint_index
+
+        for i in range (self.waypoint_index, (self.waypoint_index + uptoCount)):
+            wpdist = self.euclidean_dist(p, self.waypoints[i])
+
+            if(wpdist < shortest_dist):
+                index = i # Should Next nearest waypoint index in self.waypoints
+
+        self.waypoint_index = index
+        filler_index = self.waypoint_index
+
+        # Fill the waypoints
+        for filler_index in range(self.waypoint_index, self.waypoint_index + uptoCount):
+            limited_waypoints.append(self.waypoints[filler_index])
+
+        # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be emplty so car can stop
+        if (LOOKAHEAD_WPS > uptoCount):
+            for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
+                limited_waypoints.append(Waypoint())
+
+
+
+        self.prevFinalWaypoints = limited_waypoints
         lane.waypoints = limited_waypoints
         self.final_waypoints_pub.publish(lane)
 
