@@ -86,7 +86,7 @@ class WaypointUpdater(object):
         p.pose.pose.position.z = msg.pose.position.z
 
         shortest_dist = 999
-        uptoCount = LOOKAHEAD_WPS # Since we sent 200 pts last time so the nearest pt could be max at 201 distance
+        uptoCount = LOOKAHEAD_WPS # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
         remaining_pts = (len(self.waypoints) - self.waypoint_index)
 
@@ -99,6 +99,7 @@ class WaypointUpdater(object):
             wpdist = self.euclidean_dist(p, self.waypoints[i])
 
             if(wpdist < shortest_dist):
+                shortest_dist = wpdist
                 index = i # Should Next nearest waypoint index in self.waypoints
 
         self.waypoint_index = index
@@ -112,8 +113,6 @@ class WaypointUpdater(object):
         if (LOOKAHEAD_WPS > uptoCount):
             for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
                 limited_waypoints.append(Waypoint())
-
-
 
         self.prevFinalWaypoints = limited_waypoints
         lane.waypoints = limited_waypoints
