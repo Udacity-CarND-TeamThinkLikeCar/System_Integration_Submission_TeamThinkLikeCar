@@ -116,6 +116,9 @@ class WaypointUpdater(object):
 
         self.prevFinalWaypoints = limited_waypoints
         lane.waypoints = limited_waypoints
+        rospy.loginfo('================ limited_waypoints================================================== - j1:%s',
+                      lane.waypoints)
+        rospy.loginfo('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         self.final_waypoints_pub.publish(lane)
 
         pass
