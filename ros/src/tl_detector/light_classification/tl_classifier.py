@@ -1,41 +1,28 @@
 from styx_msgs.msg import TrafficLight
-import cv2
-#from cv2.cv import CV_HOUGH_GRADIENT
+import sys
 import numpy as np
+from io import BytesIO
+import cv2
+import tensorflow as tf
+import os 
+
+
+from keras.preprocessing import image
+from keras.models import load_model
+from keras.applications.mobilenet import MobileNet, preprocess_input, relu6, DepthwiseConv2D
 import rospy
-import os
-import time
-from test_rl import TestRL
 
 class TLClassifier(object):
     def __init__(self):
-        #TODO load classifier
-        fname = os.path.join('light_classification', 'trained_stage_1.h5')
-        self.testRL = TestRL(fname)
-        print("initialized")
+        self.target_size = (224, 224) # 224 for InceptionV3
+	dir_path = os.path.dirname(os.path.realpath(__file__))
+        self.model = load_model(dir_path + '/mobilenet-ft.model',custom_objects={
+                   'relu6': relu6,
+                   'DepthwiseConv2D': DepthwiseConv2D})
+	self.graph = tf.get_default_graph()
+        
 
-
-    def cv_classification(self,image):
-
-        hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        frame_threshed = cv2.inRange(hsv_img, np.array([0, 120, 120], np.uint8), np.array([10, 255, 255], np.uint8))
-        r = cv2.countNonZero(frame_threshed)
-        if r > 50:
-            return "Red"
-
-        frame_threshed = cv2.inRange(hsv_img, np.array([40.0 / 360 * 255, 120, 120], np.uint8), np.array([66.0 / 360 * 255, 255, 255], np.uint8))
-        y = cv2.countNonZero(frame_threshed)
-        if y > 50:
-            return "Yellow"
-
-        frame_threshed = cv2.inRange(hsv_img, np.array([90.0 / 360 * 255, 120, 120], np.uint8), np.array([140.0 / 360 * 255, 255, 255], np.uint8))
-        g = cv2.countNonZero(frame_threshed)
-        if g > 50:
-            return "Green"
-
-        return None
-
-    def get_classification(self, image):
+    def get_classification(self, img):
         """Determines the color of the traffic light in the image
 
         Args:
@@ -45,56 +32,54 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        #TODO implement light color prediction
+        predictions = self.predict(img)
+        return self.model_indexs_to_styx_msgs_index(predictions)
+    
+    def predict(self, img):
+        """Run model prediction on image
+        Args:
+            model: keras model
+            img: cv2 format image
+            target_size: (w,h) tuple
+        Returns:
+            list of predicted labels and their probabilities
+        """
+        if img.size != self.target_size:
+            img = cv2.resize(img, self.target_size)
 
-        # state = None
-        #
-        # cv2.imwrite("/capstone/img" + str(time.time()) + ".jpeg", image)
-        #
-        # chsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        #
-        # mask = cv2.inRange(chsv, np.array([11, 100, 100]), np.array([59, 255, 255]))
-        #
-        # # sides, vertices = find_vertices(lines[0], valid_angles=[0., 90.])
-        # circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 2, 50, param1=60, param2=30,
-        #                            minRadius=2, maxRadius=30)
-        #
-        # if circles is not None:
-        #
-        #     state = "yellow"
-        #
-        # lower_red_hue_range = cv2.inRange(chsv, np.array([0, 255, 255]), np.array([10, 255, 255]))
-        #
-        # circles = cv2.HoughCircles(lower_red_hue_range, cv2.HOUGH_GRADIENT, 2, 50, param1=60, param2=30,
-        #                            minRadius=2, maxRadius=30)
-        #
-        # if circles is not None:
-        #     state = "red"
-        #
-        # mask = cv2.inRange(chsv, np.array([60, 255, 255], dtype="uint8"), np.array([60, 255, 255], dtype="uint8"))
-        #
-        # circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 2, 50, param1=60, param2=30,
-        #                            minRadius=2, maxRadius=30)
-        #
-        # if circles is not None:
-        #     state = "green"
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
+	predictions = None
+	with self.graph.as_default():
+            predictions = self.model.predict(img_array)
+        
+        return predictions[0]
 
-        state = self.testRL.classify(image)
+    def model_indexs_to_styx_msgs_index(self, predictions):
+        """  The labels in the model are in ['red', 'green', 'none', 'yellow']
+            the .msg requires green = 2, yellow = 1, red = 0, unknown = 4
+        Args:
+            predictions: list of label probabilities from a trained model
 
-        trafficlight = TrafficLight.UNKNOWN
-
-        cv_state = self.cv_classification(image)
-        print("cv_state ",cv_state)
-
-        if "Red" == state:
-            trafficlight = TrafficLight.RED
-        elif "Green" == state:
-            trafficlight = TrafficLight.GREEN
-        elif "Yellow" == state:
-            trafficlight = TrafficLight.YELLOW
+        Returns:
+            int: ID of traffic light color (specified in styx_msgs/TrafficLight)
+        """
+        labels = ['red', 'none', 'green', 'yellow']
+        max_index = np.argmax(predictions)
+        best_label = labels[max_index]
+        rospy.logdebug(best_label)
+        if(best_label) == 'green':
+            return TrafficLight.GREEN
+        if(best_label) == 'red':
+            return TrafficLight.RED
+        if(best_label) == 'yellow':
+            return TrafficLight.YELLOW
+        return TrafficLight.UNKNOWN
 
 
-        rospy.logdebug("state is" + str(state))
 
 
-        return trafficlight
+
+
+
