@@ -37,7 +37,7 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        self.waypoints = []
+        self.rxd_lane_obj = []
         self.prevFinalWaypoints = []
         self.waypoint_index = 0
 
@@ -52,43 +52,20 @@ class WaypointUpdater(object):
 
     def pose_cb(self, msg):
 
-        lane = Lane()
-        lane.header.frame_id = '/finalWayPoints'
-        lane.header.stamp = rospy.Time(0)
         limited_waypoints = []
 
-        rospy.loginfo('Current Pos Received as - j1:%s',
-                      msg)
-	#header: 
-	#  seq: 6500
-	#  stamp: 
-	#    secs: 1515547063
-	#    nsecs:  34849882
-	#  frame_id: ''
-	#level: 2
-	#name: "/waypoint_updater"
-	#msg: "Current Pos Received as - j1:header: \n  seq: 6780\n  stamp: \n    secs: 1515547063\n\
-	#  \    nsecs:  29352903\n  frame_id: \"/world\"\npose: \n  position: \n    x: 1497.886\n\
-	#  \    y: 1183.949\n    z: 0.02347874\n  orientation: \n    x: -0.0\n    y: 0.0\n\
-	#  \    z: 0.00512600956436\n    w: -0.999986861927"
-	#file: "waypoint_updater.py"
-	#function: "pose_cb"
-	#line: 54
+        rospy.loginfo('Current Pos Received as - j1:%s', msg)
 
-        ####### Need to fill more here
-
-
-       # if(len(self.prevFinalWaypoints)):
         p = Waypoint()
 
         p.pose.pose.position.x = msg.pose.position.x
         p.pose.pose.position.y = msg.pose.position.y
         p.pose.pose.position.z = msg.pose.position.z
 
-        shortest_dist = 999
+        shortest_dist = 99999
         uptoCount = LOOKAHEAD_WPS # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
-        remaining_pts = (len(self.waypoints) - self.waypoint_index)
+        remaining_pts = (len(self.rxd_lane_obj.waypoints) - self.waypoint_index)
 
         if(remaining_pts < uptoCount):
             uptoCount = remaining_pts
@@ -96,35 +73,40 @@ class WaypointUpdater(object):
         index = self.waypoint_index
 
         for i in range (self.waypoint_index, (self.waypoint_index + uptoCount)):
-            wpdist = self.euclidean_dist(p, self.waypoints[i])
-
+            wpdist = self.euclidean_dist(p, self.rxd_lane_obj.waypoints[i])
             if(wpdist < shortest_dist):
                 shortest_dist = wpdist
-                index = i # Should Next nearest waypoint index in self.waypoints
+                index = i # Should Next nearest waypoint index in self.rxd_lane_obj.waypoints
 
         self.waypoint_index = index
         filler_index = self.waypoint_index
 
         # Fill the waypoints
         for filler_index in range(self.waypoint_index, self.waypoint_index + uptoCount):
-            limited_waypoints.append(self.waypoints[filler_index])
+            limited_waypoints.append(self.rxd_lane_obj.waypoints[filler_index])
 
         # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be emplty so car can stop
         if (LOOKAHEAD_WPS > uptoCount):
             for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
-                limited_waypoints.append(Waypoint())
+                extraWp = Waypoint()
+                extraWp.twist.twist.linear.x = 0 # 0 velocity
+                limited_waypoints.append(extraWp)
 
         self.prevFinalWaypoints = limited_waypoints
+
+        lane = Lane()
+        lane.header = self.rxd_lane_obj.header
         lane.waypoints = limited_waypoints
-        rospy.loginfo('================ limited_waypoints================================================== - j1:%s',
-                      lane.waypoints)
+
+    #    rospy.loginfo('================ limited_waypoints================================================== - j1:%s',
+     #                 lane.waypoints)
         rospy.loginfo('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         self.final_waypoints_pub.publish(lane)
 
         pass
 
-    def waypoints_cb(self, Lane):
-        self.waypoints = Lane.waypoints
+    def waypoints_cb(self, lane):
+        self.rxd_lane_obj = lane
         pass
 
     def traffic_cb(self, msg):
