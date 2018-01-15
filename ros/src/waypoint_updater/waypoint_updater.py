@@ -67,21 +67,21 @@ class WaypointUpdater(object):
 
         remaining_pts = (len(self.rxd_lane_obj.waypoints) - self.waypoint_index)
 
-        if(remaining_pts < uptoCount):
+        if remaining_pts < uptoCount:
             uptoCount = remaining_pts
 
         index = self.waypoint_index
         foundIndexCount = 0
 
-        for i in range (self.waypoint_index, (self.waypoint_index + uptoCount)):
+        for i in range(self.waypoint_index, (self.waypoint_index + uptoCount)):
             wpdist = self.euclidean_dist(p, self.rxd_lane_obj.waypoints[i])
-            if(wpdist < shortest_dist):
+            if wpdist < shortest_dist:
                 shortest_dist = wpdist
                 foundIndexCount = 0
                 index = i # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
-            if(wpdist > shortest_dist):
+            if wpdist > shortest_dist:
                 foundIndexCount += 1
-            if(foundIndexCount > 15): # If distance is increasing, means we found it
+            if foundIndexCount > 10: # If distance is increasing, means we found it
                 rospy.loginfo('+++++++++++++++ Breaking loop at index  - j1:%s', i)
                 break
 
@@ -94,7 +94,7 @@ class WaypointUpdater(object):
             filler_index = count_index
 
         # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be empty so car can stop
-        if (LOOKAHEAD_WPS > uptoCount):
+        if LOOKAHEAD_WPS > uptoCount:
             for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
                 extraWp = Waypoint()
                 extraWp.twist.twist.linear.x = 0 # 0 velocity
@@ -106,9 +106,7 @@ class WaypointUpdater(object):
         lane.header = self.rxd_lane_obj.header
         lane.waypoints = limited_waypoints
 
-    #    rospy.loginfo('================ limited_waypoints================================================== - j1:%s',
-     #                 lane.waypoints)
-        rospy.loginfo('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        rospy.loginfo('++++++++++++++++++ Broadcasting /final_waypoints +++++++++++++++++++')
         self.final_waypoints_pub.publish(lane)
 
         pass
