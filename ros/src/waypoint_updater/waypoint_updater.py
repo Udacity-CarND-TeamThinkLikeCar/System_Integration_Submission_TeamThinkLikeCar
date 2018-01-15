@@ -81,7 +81,7 @@ class WaypointUpdater(object):
                 index = i # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
             if wpdist > shortest_dist:
                 foundIndexCount += 1
-            if foundIndexCount > 10: # If distance is increasing, means we found it
+            if foundIndexCount > 50: # If distance is increasing, means we found it
                 rospy.loginfo('+++++++++++++++ Breaking loop at index  - j1:%s', i)
                 break
 
