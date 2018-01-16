@@ -22,7 +22,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -32,23 +32,24 @@ class WaypointUpdater(object):
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
-    #    rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
-    #    rospy.Subscriber('/obstacle_waypoint', Int32, self.obstacle_cb) // Assuming Int32 here
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        #    rospy.Subscriber('/obstacle_waypoint', Int32, self.obstacle_cb) // Assuming Int32 here
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.rxd_lane_obj = []
         self.prevFinalWaypoints = []
         self.waypoint_index = 0
+        self.numOfWaypoints = 0
 
         rospy.spin()
 
-    def euclidean_dist(self, p1, p2):
-        x, y, z = p1.pose.pose.position.x - p2.pose.pose.position.x,\
+    @staticmethod
+    def euclidean_dist(p1, p2):
+        x, y, z = p1.pose.pose.position.x - p2.pose.pose.position.x, \
                   p1.pose.pose.position.y - p2.pose.pose.position.y, \
                   p1.pose.pose.position.z - p2.pose.pose.position.z
-        return math.sqrt(x*x + y*y + z*z)
-
+        return math.sqrt(x * x + y * y + z * z)
 
     def pose_cb(self, msg):
 
@@ -63,42 +64,46 @@ class WaypointUpdater(object):
         p.pose.pose.position.z = msg.pose.position.z
 
         shortest_dist = 99999
-        uptoCount = LOOKAHEAD_WPS # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
+        uptoCount = LOOKAHEAD_WPS  # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
-        remaining_pts = (len(self.rxd_lane_obj.waypoints) - self.waypoint_index)
+        remaining_pts = (self.numOfWaypoints - self.waypoint_index)
 
-        if remaining_pts < uptoCount:
-            uptoCount = remaining_pts
+        if remaining_pts > 0:
+            if remaining_pts < uptoCount:
+                uptoCount = remaining_pts
 
-        index = self.waypoint_index
-        foundIndexCount = 0
+            index = self.waypoint_index
+            foundIndexCount = 0
 
-        for i in range(self.waypoint_index, (self.waypoint_index + uptoCount)):
-            wpdist = self.euclidean_dist(p, self.rxd_lane_obj.waypoints[i])
-            if wpdist < shortest_dist:
-                shortest_dist = wpdist
-                foundIndexCount = 0
-                index = i # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
-            if wpdist > shortest_dist:
-                foundIndexCount += 1
-            if foundIndexCount > 50: # If distance is increasing, means we found it
-                rospy.loginfo('+++++++++++++++ Breaking loop at index  - j1:%s', i)
-                break
+            for i in range(self.waypoint_index, (self.waypoint_index + uptoCount)):
+                wpdist = self.euclidean_dist(p, self.rxd_lane_obj.waypoints[i])
+                if wpdist < shortest_dist:
+                    shortest_dist = wpdist
+                    foundIndexCount = 0
+                    index = i  # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
+                if wpdist > shortest_dist:
+                    foundIndexCount += 1
+                if foundIndexCount > 100:  # If distance is increasing, means we found it
+                    rospy.loginfo('+++++++++++++++ Breaking loop at index  - j1:%s', i)
+                    break
 
-        self.waypoint_index = index
-        filler_index = 0
+            self.waypoint_index = index
+            filler_index = 0
 
-        # Fill the waypoints
-        for count_index in range(self.waypoint_index, self.waypoint_index + uptoCount - 1):
-            limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
-            filler_index = count_index
+            # Fill the waypoints
+            for count_index in range(self.waypoint_index, self.waypoint_index + uptoCount - 1):
+                limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
+                filler_index = count_index
 
-        # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be empty so car can stop
-        if LOOKAHEAD_WPS > uptoCount:
-            for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
-                extraWp = Waypoint()
-                extraWp.twist.twist.linear.x = 0 # 0 velocity
-                limited_waypoints.append(extraWp)
+            if remaining_pts <= 50:
+                limited_waypoints = self.set_group_velocity(limited_waypoints, 50)
+
+            # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be empty so car can stop
+            # if LOOKAHEAD_WPS > uptoCount:
+            #     for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
+            #         extraWp = Waypoint()
+            #         extraWp.twist.twist.linear.x = 0  # 0 velocity
+            #         limited_waypoints.append(extraWp)
 
         self.prevFinalWaypoints = limited_waypoints
 
@@ -111,8 +116,21 @@ class WaypointUpdater(object):
 
         pass
 
+    def set_group_velocity(self, limited_waypoints, decrement_factor):
+        num_wp = len(limited_waypoints)
+        if decrement_factor > num_wp:
+            decrement_factor = num_wp
+
+        # Decreasing velocity gracefully,
+        for i in range(num_wp, 0):
+            limited_waypoints[i].twist.twist.linear.x = decrement_factor
+            decrement_factor -= 1
+
+        return limited_waypoints
+
     def waypoints_cb(self, lane):
         self.rxd_lane_obj = lane
+        self.numOfWaypoints = len(self.rxd_lane_obj.waypoints)
         pass
 
     def traffic_cb(self, msg):
@@ -131,8 +149,8 @@ class WaypointUpdater(object):
 
     def distance(self, waypoints, wp1, wp2):
         dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
+        dl = lambda a, b: math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2)
+        for i in range(wp1, wp2 + 1):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
@@ -143,4 +161,3 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
-
