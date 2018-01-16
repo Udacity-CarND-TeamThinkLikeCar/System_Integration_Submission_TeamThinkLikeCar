@@ -5,7 +5,7 @@ from io import BytesIO
 import cv2
 import tensorflow as tf
 import os 
-
+from PIL import Image
 from keras.preprocessing import image
 from keras.models import load_model
 from keras.applications.mobilenet import MobileNet, preprocess_input, relu6, DepthwiseConv2D
@@ -15,9 +15,9 @@ class TLClassifier(object):
     def __init__(self):
         self.target_size = (224, 224) # 224 for InceptionV3
 	    dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.model = load_model(dir_path + '/mobilenet-ft-transfer.model', custom_objects={
-                    'relu6': relu6,
-                    'DepthwiseConv2D': DepthwiseConv2D})
+        self.model = load_model(dir_path + '/mobilenet-ft.model',custom_objects={
+                   'relu6': relu6,
+                   'DepthwiseConv2D': DepthwiseConv2D})
 	    self.graph = tf.get_default_graph()
         
 
@@ -31,6 +31,7 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+	    img = self.cv2ToPIL(img)
         predictions = self.predict(img)
         return self.model_indexs_to_styx_msgs_index(predictions)
     
@@ -44,15 +45,15 @@ class TLClassifier(object):
             list of predicted labels and their probabilities
         """
         if img.size != self.target_size:
-            img = cv2.resize(img, self.target_size)
+            img = img.resize(self.target_size)
 
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
         img_array = preprocess_input(img_array)
         predictions = None
         with self.graph.as_default():
-                predictions = self.model.predict(img_array)
-            
+            predictions = self.model.predict(img_array)
+        
         return predictions[0]
 
     def model_indexs_to_styx_msgs_index(self, predictions):
@@ -64,7 +65,7 @@ class TLClassifier(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
-        labels = ['red', 'none', 'green', 'yellow']
+        labels = ['green', 'none', 'red', 'yellow']
         max_index = np.argmax(predictions)
         best_label = labels[max_index]
         rospy.logdebug(best_label)
@@ -75,6 +76,11 @@ class TLClassifier(object):
         if(best_label) == 'yellow':
             return TrafficLight.YELLOW
         return TrafficLight.UNKNOWN
+    
+    def cv2ToPIL(self, img):
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        return Image.fromarray(img)
+
 
 
 
