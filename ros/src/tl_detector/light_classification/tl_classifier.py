@@ -6,7 +6,6 @@ import cv2
 import tensorflow as tf
 import os 
 
-
 from keras.preprocessing import image
 from keras.models import load_model
 from keras.applications.mobilenet import MobileNet, preprocess_input, relu6, DepthwiseConv2D
@@ -15,11 +14,11 @@ import rospy
 class TLClassifier(object):
     def __init__(self):
         self.target_size = (224, 224) # 224 for InceptionV3
-	dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.model = load_model(dir_path + '/mobilenet-ft.model',custom_objects={
-                   'relu6': relu6,
-                   'DepthwiseConv2D': DepthwiseConv2D})
-	self.graph = tf.get_default_graph()
+	    dir_path = os.path.dirname(os.path.realpath(__file__))
+        self.model = load_model(dir_path + '/mobilenet-ft-transfer.model', custom_objects={
+                    'relu6': relu6,
+                    'DepthwiseConv2D': DepthwiseConv2D})
+	    self.graph = tf.get_default_graph()
         
 
     def get_classification(self, img):
@@ -50,10 +49,10 @@ class TLClassifier(object):
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
         img_array = preprocess_input(img_array)
-	predictions = None
-	with self.graph.as_default():
-            predictions = self.model.predict(img_array)
-        
+        predictions = None
+        with self.graph.as_default():
+                predictions = self.model.predict(img_array)
+            
         return predictions[0]
 
     def model_indexs_to_styx_msgs_index(self, predictions):
