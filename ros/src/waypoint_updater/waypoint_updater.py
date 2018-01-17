@@ -41,6 +41,9 @@ class WaypointUpdater(object):
         self.prevFinalWaypoints = []
         self.waypoint_index = 0
         self.numOfWaypoints = 0
+        self.is_stop_req = 1
+        self.stop_wayp_index = 190 # Default very high number
+        self.decrement_factor = 50 # We will try to start decrementing speed from these many way points
 
         rospy.spin()
 
@@ -66,7 +69,7 @@ class WaypointUpdater(object):
         shortest_dist = 99999
         uptoCount = LOOKAHEAD_WPS  # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
-        remaining_pts = (self.numOfWaypoints - self.waypoint_index)
+        remaining_pts = (self.numOfWaypoints - self.waypoint_index + 1)
 
         if remaining_pts > 0:
             if remaining_pts < uptoCount:
@@ -95,8 +98,14 @@ class WaypointUpdater(object):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
                 filler_index = count_index
 
-            if remaining_pts <= 50:
-                limited_waypoints = self.set_group_velocity(limited_waypoints, 50)
+            inrange = 0
+            if self.waypoint_index < self.stop_wayp_index and (self.stop_wayp_index - self.waypoint_index < uptoCount):
+                inrange = 1
+
+            if self.is_stop_req == 1 and inrange == 1:
+                curr_stop_index = self.stop_wayp_index - self.waypoint_index
+                limited_waypoints = self.set_group_velocity(limited_waypoints, self.decrement_factor, curr_stop_index)
+
 
             # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be empty so car can stop
             # if LOOKAHEAD_WPS > uptoCount:
@@ -116,15 +125,20 @@ class WaypointUpdater(object):
 
         pass
 
-    def set_group_velocity(self, limited_waypoints, decrement_factor):
-        num_wp = len(limited_waypoints)
-        if decrement_factor > num_wp:
-            decrement_factor = num_wp
+    def set_group_velocity(self, limited_waypoints, decrement_factor, curr_stop_index):
+
+        if curr_stop_index < decrement_factor:
+            decrement_factor = curr_stop_index
+
+        start_dec_index = curr_stop_index - decrement_factor # 0 when stop index < 50
 
         # Decreasing velocity gracefully,
-        for i in range(num_wp, 0):
-            limited_waypoints[i].twist.twist.linear.x = decrement_factor
-            decrement_factor -= 1
+        for i in range(0, len(limited_waypoints)):
+            if start_dec_index < i < curr_stop_index:
+                limited_waypoints[i].twist.twist.linear.x = decrement_factor
+                decrement_factor -= 1
+            elif i > curr_stop_index:
+                limited_waypoints[i].twist.twist.linear.x = 0
 
         return limited_waypoints
 
