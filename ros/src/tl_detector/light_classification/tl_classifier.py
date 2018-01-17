@@ -14,26 +14,23 @@ class TLClassifier(object):
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         model_file = dir_path + "/mobilenet-ft.pb"
+        input_name = "import/input_1"
+        output_name = "import/output_node0"
         self.input_height = 224
         self.input_width = 224
         self.input_mean = 128
         self.input_std = 128
-        self.input_name = "import/input_1"
-        self.output_name = "import/output_node0"
         self.graph = tf.get_default_graph()
         self.graph = self.__load_graph(model_file)
-        self.input_operation = self.graph.get_operation_by_name(self.input_name)
-        self.output_operation = self.graph.get_operation_by_name(self.output_name)
+        self.input_operation = self.graph.get_operation_by_name(input_name)
+        self.output_operation = self.graph.get_operation_by_name(output_name)
   
     def get_classification(self, img):
-        """Determines the color of the traffic light in the image
-
+        """ Determines the color of the traffic light in the image
         Args:
             image (cv::Mat): image containing the traffic light
-
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
-
         """
         img = self.__cv2ToPIL(img)
         predictions = self.__predict(img)
@@ -51,6 +48,14 @@ class TLClassifier(object):
         return graph
 
     def __read_tensor_from_image(self, image):
+        """ Preprocess the image for training
+
+        Args: 
+            image: PIL format image
+
+        Returns:
+            Tensor of an image
+        """  
         img_tf = tf.placeholder(tf.float32, (None, None, 3))
         float_caster = tf.cast(img_tf, tf.float32)
         dims_expander = tf.expand_dims(float_caster, 0)
@@ -61,26 +66,28 @@ class TLClassifier(object):
         return result
     
     def __predict(self, img):
-        """Run model prediction on image
+        """ Run model prediction on image
+
         Args:
             model: keras model
-            img: cv2 format image
-            target_size: (w,h) tuple
+            img: PIL format image
+            
         Returns:
-            list of predicted labels and their probabilities
+            List of predicted probabilities
         """       
-        t = self.__read_tensor_from_image(img)
+        tensor = self.__read_tensor_from_image(img)
         
         with tf.Session(graph=self.graph) as sess:
             results = sess.run(self.output_operation.outputs[0],
-                            {self.input_operation.outputs[0]: t})
+                            {self.input_operation.outputs[0]: tensor})
         return np.squeeze(results)
 
     def __model_indexs_to_styx_msgs_index(self, predictions):
-        """  The labels in the model are in ['red', 'green', 'none', 'yellow']
-            the .msg requires green = 2, yellow = 1, red = 0, unknown = 4
+        """  The labels in the model are in ['green', 'none', 'red', 'yellow']
+            the .msg is in format green = 2, yellow = 1, red = 0, unknown = 4
+
         Args:
-            predictions: list of label probabilities from a trained model
+            predictions: List of label probabilities from a trained model
 
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
