@@ -32,7 +32,7 @@ class TLClassifier(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
-        img = self.__cv2ToPIL(img)
+        #img = self.__cv2ToPIL(img)
         predictions = self.__predict(img)
         return self.__model_indexs_to_styx_msgs_index(predictions)
 
