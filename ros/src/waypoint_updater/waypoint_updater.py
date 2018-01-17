@@ -42,7 +42,7 @@ class WaypointUpdater(object):
         self.waypoint_index = 0
         self.numOfWaypoints = 0
         self.is_stop_req = 1
-        self.stop_wayp_index = 190 # Default very high number
+        self.stop_wayp_index = 999999 # Default very high number
         self.decrement_factor = 50 # We will try to start decrementing speed from these many way points
 
         rospy.spin()
