@@ -60,13 +60,13 @@ class WaypointUpdater(object):
 
         limited_waypoints = []
 
-        rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.x)
-        rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.y)
-        rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.z)
-
-        rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.x)
-        rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.y)
-        rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.z)
+        # rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.x)
+        # rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.y)
+        # rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.z)
+        #
+        # rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.x)
+        # rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.y)
+        # rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.z)
 
         p = Waypoint()
 
@@ -99,7 +99,7 @@ class WaypointUpdater(object):
                   #  rospy.loginfo('+++++++++++++++ foundIndexCount :%s', foundIndexCount)
                     foundIndexCount += 1
                 if foundIndexCount > 50:  # If distance is increasing, means we found it
-                    rospy.loginfo('+++++++++++++++ Breaking loop at index :%s', i)
+                    # rospy.loginfo('+++++++++++++++ Breaking loop at index :%s', i)
                     break
 
             self.car_pos_index = index
@@ -110,8 +110,8 @@ class WaypointUpdater(object):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
                 filler_index = count_index
 
-            rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
-            rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
+            # rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
+            # rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
 
             inrange = 0
             if self.car_pos_index <= self.stop_wayp_index and (self.stop_wayp_index - self.car_pos_index < uptoCount):
@@ -164,8 +164,8 @@ class WaypointUpdater(object):
             decrement_factor = curr_stop_index
 
         start_dec_index = curr_stop_index - math.ceil(decrement_factor) # 0 when stop index < 50
-        rospy.loginfo('++++++++++++++++ set_group_velocity : start_dec_index: %s ', start_dec_index)
-        rospy.loginfo('++++++++++++++++ , curr_stop_index: %s', curr_stop_index)
+        # rospy.loginfo('++++++++++++++++ set_group_velocity : start_dec_index: %s ', start_dec_index)
+        # rospy.loginfo('++++++++++++++++ , curr_stop_index: %s', curr_stop_index)
 
         for i in range(0, len(limited_waypoints)):
             if start_dec_index <= i <= curr_stop_index:
@@ -180,8 +180,6 @@ class WaypointUpdater(object):
         self.rxd_lane_obj = lane
         self.numOfWaypoints = len(self.rxd_lane_obj.waypoints)
         rospy.loginfo('++++++++++++++++ waypoints_cb ++++++++++++++++++++')
-
-        rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', self.velocity_array)
         pass
 
     def traffic_cb(self, msg):
