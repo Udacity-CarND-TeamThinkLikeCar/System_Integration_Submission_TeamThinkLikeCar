@@ -31,7 +31,7 @@ that we have created in the `__init__` function.
 
 '''
 
-COMMAND_FREQUENCY = 10 # in HZ
+COMMAND_FREQUENCY = 50 # in HZ
 
 class DBWNode(object):
     def __init__(self):
