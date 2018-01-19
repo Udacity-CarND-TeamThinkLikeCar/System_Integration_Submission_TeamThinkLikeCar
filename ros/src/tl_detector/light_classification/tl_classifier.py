@@ -16,8 +16,8 @@ class TLClassifier(object):
         model_file = dir_path + "/mobilenet-ft.pb"
         input_name = "import/input_1"
         output_name = "import/output_node0"
-        self.input_height = 224
-        self.input_width = 224
+        self.input_height = 192
+        self.input_width = 192
         self.input_mean = 128
         self.input_std = 128
         self.graph = tf.get_default_graph()
@@ -32,7 +32,6 @@ class TLClassifier(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
-        #img = self.__cv2ToPIL(img)
         predictions = self.__predict(img)
         return self.__model_indexs_to_styx_msgs_index(predictions)
 
@@ -103,10 +102,6 @@ class TLClassifier(object):
         if(best_label) == 'yellow':
             return TrafficLight.YELLOW
         return TrafficLight.UNKNOWN
-    
-    def __cv2ToPIL(self, img):
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        return Image.fromarray(img)
 
 
 
