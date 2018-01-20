@@ -42,8 +42,8 @@ class WaypointUpdater(object):
         self.prevFinalWaypoints = []
         self.car_pos_index = 0
         self.numOfWaypoints = 0
-        self.is_stop_req = 0
-        self.stop_wayp_index = 9999999  # Default very high number
+        self.is_stop_req = 1
+        self.stop_wayp_index = 500  # Default very high number
         self.decrement_factor = 79  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
 
@@ -110,13 +110,12 @@ class WaypointUpdater(object):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
                 filler_index = count_index
 
-            # rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
-            # rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
+            rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
+            rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
 
             inrange = 0
 
-            # diff = self.stop_wayp_index - self.car_pos_index
-            diff = int(str(self.stop_wayp_index)) - int(str(self.car_pos_index))
+            diff = self.stop_wayp_index - self.car_pos_index
 
             if self.car_pos_index <= self.stop_wayp_index:
                 if diff < uptoCount:
@@ -188,10 +187,14 @@ class WaypointUpdater(object):
         pass
 
     def traffic_cb(self, wp_index):
-        self.is_stop_req = 1
-        self.stop_wayp_index = wp_index
+        if wp_index.data != -1:
+            self.is_stop_req = 1
+            self.stop_wayp_index = wp_index.data
+        else:
+            self.is_stop_req = 0
+            self.stop_wayp_index = 9999999
 
-        rospy.loginfo('++++++++++++++++++TTTTTTTTTT self.stop_wayp_index : %s', wp_index)
+        rospy.loginfo('++++++++++++++++++TTTTTTTTTT self.stop_wayp_index : %s', wp_index.data)
 
         pass
 
