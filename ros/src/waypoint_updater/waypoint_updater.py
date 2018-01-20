@@ -42,8 +42,8 @@ class WaypointUpdater(object):
         self.prevFinalWaypoints = []
         self.car_pos_index = 0
         self.numOfWaypoints = 0
-        self.is_stop_req = 1
-        self.stop_wayp_index = 500  # Default very high number
+        self.is_stop_req = 0
+        self.stop_wayp_index = 999999  # Default very high number
         self.decrement_factor = 79  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
 
@@ -98,7 +98,7 @@ class WaypointUpdater(object):
                 if wpdist > shortest_dist:
                   #  rospy.loginfo('+++++++++++++++ foundIndexCount :%s', foundIndexCount)
                     foundIndexCount += 1
-                if foundIndexCount > 50:  # If distance is increasing, means we found it
+                if foundIndexCount > 150:  # If distance is increasing, means we found it
                     # rospy.loginfo('+++++++++++++++ Breaking loop at index :%s', i)
                     break
 
@@ -106,12 +106,12 @@ class WaypointUpdater(object):
             filler_index = 0
 
             # Fill the waypoints
-            for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount - 1):
+            for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
                 filler_index = count_index
 
-            rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
-            rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
+       #     rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
+       #     rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
 
             inrange = 0
 
@@ -187,12 +187,12 @@ class WaypointUpdater(object):
         pass
 
     def traffic_cb(self, wp_index):
-        if wp_index.data != -1:
-            self.is_stop_req = 1
-            self.stop_wayp_index = wp_index.data
-        else:
+        if wp_index.data == -1:
             self.is_stop_req = 0
             self.stop_wayp_index = 9999999
+        else:
+            self.is_stop_req = 1
+            self.stop_wayp_index = wp_index.data
 
         rospy.loginfo('++++++++++++++++++TTTTTTTTTT self.stop_wayp_index : %s', wp_index.data)
 
