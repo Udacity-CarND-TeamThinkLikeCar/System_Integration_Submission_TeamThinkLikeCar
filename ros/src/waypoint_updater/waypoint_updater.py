@@ -101,9 +101,6 @@ class WaypointUpdater(object):
             for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
 
-            rospy.logdebug('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
-            rospy.logdebug('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
-
             inrange = 0
 
             diff = self.stop_wayp_index - self.car_pos_index
@@ -117,6 +114,9 @@ class WaypointUpdater(object):
             #print("Stop waypoint inrange", inrange)
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
+
+                rospy.logdebug('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index)
+                rospy.logdebug('++++++++++++++++  self.stop_wayp_index %d ', self.stop_wayp_index)
 
                 adv_stop_wap = 80
                 for i in range(adv_stop_wap):
