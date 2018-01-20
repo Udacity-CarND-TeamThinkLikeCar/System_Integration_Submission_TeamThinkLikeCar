@@ -176,6 +176,7 @@ class Bridge(object):
 
     def publish_camera(self, data):
         imgString = data["image"]
+        #rospy.logdebug('image is ....')
         image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
 
