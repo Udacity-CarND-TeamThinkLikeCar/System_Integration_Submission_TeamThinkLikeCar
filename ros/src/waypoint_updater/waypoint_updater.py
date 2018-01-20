@@ -39,11 +39,11 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.rxd_lane_obj = []
-        self.prevFinalWaypoints = []
         self.car_pos_index = 0
         self.numOfWaypoints = 0
         self.is_stop_req = 0
-        self.stop_wayp_index = 999999  # Default very high number
+        self.short_of_points = 0
+        self.stop_wayp_index = 9999999  # Default very high number
         self.decrement_factor = 79  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
 
@@ -60,21 +60,13 @@ class WaypointUpdater(object):
 
         limited_waypoints = []
 
-        # rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.x)
-        # rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.y)
-        # rospy.loginfo(' +++++++++++++++++ Current Pos Received as :%s', msg.pose.position.z)
-        #
-        # rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.x)
-        # rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.y)
-        # rospy.loginfo(' +++++++++++++++++ Current Car position :%s', self.rxd_lane_obj.waypoints[self.car_pos_index].pose.pose.position.z)
-
         p = Waypoint()
 
         p.pose.pose.position.x = msg.pose.position.x
         p.pose.pose.position.y = msg.pose.position.y
         p.pose.pose.position.z = msg.pose.position.z
 
-        shortest_dist = 99999
+        shortest_dist = 9999999  # Default very high number
         uptoCount = LOOKAHEAD_WPS  # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
         remaining_pts = (self.numOfWaypoints - self.car_pos_index + 1)
@@ -82,33 +74,32 @@ class WaypointUpdater(object):
         if remaining_pts > 0:
             if remaining_pts < uptoCount:
                 uptoCount = remaining_pts
+                if uptoCount < 80:
+                    self.short_of_points = 1
+                    self.stop_wayp_index = self.numOfWaypoints - 1   # The last known index
 
             index = self.car_pos_index
             foundIndexCount = 0
 
-            for i in range(self.car_pos_index, (self.car_pos_index + uptoCount + 200)):
+            for i in range(self.car_pos_index, self.numOfWaypoints):  #(self.car_pos_index + uptoCount + 200)):
                 wpdist = self.euclidean_dist(p, self.rxd_lane_obj.waypoints[i])
-                # rospy.loginfo('+++++++++++++++ wpdist :%s', wpdist)
-                # rospy.loginfo('+++++++++++++++ shortest_dist :%s', shortest_dist)
+
                 if wpdist < shortest_dist:
                     shortest_dist = wpdist
                     foundIndexCount = 0
                     index = i  # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
-                 #   rospy.loginfo('+++++++++++++++ index :%s', index)
+
                 if wpdist > shortest_dist:
-                  #  rospy.loginfo('+++++++++++++++ foundIndexCount :%s', foundIndexCount)
                     foundIndexCount += 1
+
                 if foundIndexCount > 150:  # If distance is increasing, means we found it
-                    # rospy.loginfo('+++++++++++++++ Breaking loop at index :%s', i)
                     break
 
             self.car_pos_index = index
-            filler_index = 0
 
             # Fill the waypoints
             for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
-                filler_index = count_index
 
        #     rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
        #     rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
@@ -123,7 +114,7 @@ class WaypointUpdater(object):
 
             rospy.loginfo('++++++++++++++++ inrange : %s ', inrange)
 
-            if self.is_stop_req == 1 and inrange == 1:
+            if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
                 adv_stop_wap = 80
                 for i in range(adv_stop_wap):
@@ -140,25 +131,11 @@ class WaypointUpdater(object):
 
                 limited_waypoints = self.prepare_to_stop(limited_waypoints, self.decrement_factor, curr_stop_index)
 
-            # for i in range(0, len(limited_waypoints)):
-            #     rospy.loginfo('++++++++++++++++ Velocity at index : %s ', i )
-            #     rospy.loginfo('++++++++++++++++  is : %s' ,limited_waypoints[i].twist.twist.linear.x)
-
-
-                # Fill waypoints upto LOOKAHEAD_WPS, all extra waypoints need to be empty so car can stop
-            # if LOOKAHEAD_WPS > uptoCount:
-            #     for k in range(filler_index, (filler_index + (LOOKAHEAD_WPS - uptoCount))):
-            #         extraWp = Waypoint()
-            #         extraWp.twist.twist.linear.x = 0  # 0 velocity
-            #         limited_waypoints.append(extraWp)
-
-        self.prevFinalWaypoints = limited_waypoints
-
+        # Prepare to broadcast
         lane = Lane()
         lane.header = self.rxd_lane_obj.header
         lane.waypoints = limited_waypoints
 
-        # rospy.loginfo('++++++++++++++++++ Broadcasting /final_waypoints +++++++++++++++++++')
         self.final_waypoints_pub.publish(lane)
         pass
 
@@ -167,9 +144,7 @@ class WaypointUpdater(object):
         if curr_stop_index < decrement_factor:
             decrement_factor = curr_stop_index
 
-        start_dec_index = curr_stop_index - math.ceil(decrement_factor) # 0 when stop index < 50
-        # rospy.loginfo('++++++++++++++++ set_group_velocity : start_dec_index: %s ', start_dec_index)
-        # rospy.loginfo('++++++++++++++++ , curr_stop_index: %s', curr_stop_index)
+        start_dec_index = curr_stop_index - decrement_factor  # 0 when stop index < 80
 
         for i in range(0, len(limited_waypoints)):
             if start_dec_index <= i <= curr_stop_index:
@@ -183,7 +158,8 @@ class WaypointUpdater(object):
     def waypoints_cb(self, lane):
         self.rxd_lane_obj = lane
         self.numOfWaypoints = len(self.rxd_lane_obj.waypoints)
-        rospy.loginfo('++++++++++++++++ waypoints_cb ++++++++++++++++++++')
+        # Uncomment this, if you want to test on short track
+        #self.numOfWaypoints = self.numOfWaypoints // 30
         pass
 
     def traffic_cb(self, wp_index):
@@ -194,7 +170,7 @@ class WaypointUpdater(object):
             self.is_stop_req = 1
             self.stop_wayp_index = wp_index.data
 
-        rospy.loginfo('++++++++++++++++++TTTTTTTTTT self.stop_wayp_index : %s', wp_index.data)
+        rospy.loginfo('+++++TTTTT self.stop_wayp_index : %s', wp_index.data)
 
         pass
 
