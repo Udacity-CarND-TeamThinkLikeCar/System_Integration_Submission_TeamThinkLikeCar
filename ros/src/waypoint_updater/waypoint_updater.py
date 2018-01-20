@@ -39,6 +39,7 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.rxd_lane_obj = []
+        self.last_sent_waypoints = []
         self.car_pos_index = 0
         self.numOfWaypoints = 0
         self.is_stop_req = 0
@@ -92,7 +93,7 @@ class WaypointUpdater(object):
                 if wpdist > shortest_dist:
                     foundIndexCount += 1
 
-                if foundIndexCount > 150:  # If distance is increasing, means we found it
+                if foundIndexCount > 50:  # If distance is increasing, means we found it
                     break
 
             self.car_pos_index = index
@@ -110,8 +111,6 @@ class WaypointUpdater(object):
                     inrange = 1
 
             rospy.logdebug("++++++++++++++++ Stop waypoint inrange %s", inrange)
-            # print("car_position", car_position)
-            #print("Stop waypoint inrange", inrange)
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
@@ -133,6 +132,15 @@ class WaypointUpdater(object):
 
                 limited_waypoints = self.prepare_to_stop(limited_waypoints, self.decrement_factor, curr_stop_index)
 
+        if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index :
+            limited_waypoints = self.last_sent_waypoints
+        else:
+            self.last_sent_waypoints = limited_waypoints
+
+        for i in range(0, len(limited_waypoints)):
+            rospy.logdebug('++++++++++++++++   %d ', i)
+            rospy.logdebug('++++++++++++++++  Velocity is :  %d ', limited_waypoints[i].twist.twist.linear.x)
+
         # Prepare to broadcast
         lane = Lane()
         lane.header = self.rxd_lane_obj.header
@@ -153,7 +161,7 @@ class WaypointUpdater(object):
                 limited_waypoints[i].twist.twist.linear.x = self.velocity_array[decrement_factor]
                 decrement_factor -= 1
             elif i > curr_stop_index:
-                limited_waypoints[i].twist.twist.linear.x = 0
+                limited_waypoints[i].twist.twist.linear.x = -1
 
         return limited_waypoints
 
