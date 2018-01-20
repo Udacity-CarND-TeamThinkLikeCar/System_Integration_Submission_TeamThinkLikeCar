@@ -45,7 +45,7 @@ class WaypointUpdater(object):
         self.is_stop_req = 0
         self.short_of_points = 0
         self.stop_wayp_index = 9999999  # Default very high number
-        self.decrement_factor = 79  # We will try to start decrementing speed from these many way points
+        self.decrement_factor = 49  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
 
         rospy.spin()
@@ -75,7 +75,7 @@ class WaypointUpdater(object):
         if remaining_pts > 0:
             if remaining_pts < uptoCount:
                 uptoCount = remaining_pts
-                if uptoCount < 80:
+                if uptoCount < 50:
                     self.short_of_points = 1
                     self.stop_wayp_index = self.numOfWaypoints - 1   # The last known index
 
@@ -110,14 +110,14 @@ class WaypointUpdater(object):
                 if diff < uptoCount:
                     inrange = 1
 
-            rospy.logdebug("++++++++++++++++ Stop waypoint inrange %s", inrange)
+            # rospy.logdebug("++++++++++++++++ Stop waypoint inrange %s", inrange)
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
-                rospy.logdebug('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index)
-                rospy.logdebug('++++++++++++++++  self.stop_wayp_index %d ', self.stop_wayp_index)
+                #rospy.logdebug('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index)
+                #rospy.logdebug('++++++++++++++++  self.stop_wayp_index %d ', self.stop_wayp_index)
 
-                adv_stop_wap = 80
+                adv_stop_wap = 50
                 for i in range(adv_stop_wap):
                     self.velocity_array.append(0)
 
@@ -132,14 +132,15 @@ class WaypointUpdater(object):
 
                 limited_waypoints = self.prepare_to_stop(limited_waypoints, self.decrement_factor, curr_stop_index)
 
-        if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index :
+        if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index:
+            rospy.logdebug('+++++++++++++ Sending old waypoints')
             limited_waypoints = self.last_sent_waypoints
         else:
             self.last_sent_waypoints = limited_waypoints
 
-        for i in range(0, len(limited_waypoints)):
-            rospy.logdebug('++++++++++++++++   %d ', i)
-            rospy.logdebug('++++++++++++++++  Velocity is :  %d ', limited_waypoints[i].twist.twist.linear.x)
+        # for i in range(0, len(limited_waypoints)):
+        #     rospy.logdebug('++++++++++++++++   %d ', i)
+        #     rospy.logdebug('++++++++++++++++  Velocity is :  %d ', limited_waypoints[i].twist.twist.linear.x)
 
         # Prepare to broadcast
         lane = Lane()
@@ -176,11 +177,15 @@ class WaypointUpdater(object):
         if wp_index.data == -1:
             self.is_stop_req = 0
             self.stop_wayp_index = 9999999
+            rospy.logdebug('+++++++++++++ Clearing Stop Request, if any')
+
         elif wp_index.data > self.car_pos_index:
             self.is_stop_req = 1
             self.stop_wayp_index = wp_index.data
+            rospy.logdebug('+++++++++++++Preparing to stop at : %s', wp_index.data)
 
-        rospy.logdebug('+++++++++++++TTTTTTTTT+++ self.stop_wayp_index : %s', wp_index.data)
+
+        #rospy.logdebug('+++++++++++++TTTTTTTTT+++ self.stop_wayp_index : %s', wp_index.data)
 
         pass
 
