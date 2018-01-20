@@ -114,8 +114,13 @@ class WaypointUpdater(object):
             # rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
 
             inrange = 0
-            if self.car_pos_index <= self.stop_wayp_index and (self.stop_wayp_index - self.car_pos_index < uptoCount):
-                inrange = 1
+
+            # diff = self.stop_wayp_index - self.car_pos_index
+            diff = int(str(self.stop_wayp_index)) - int(str(self.car_pos_index))
+
+            if self.car_pos_index <= self.stop_wayp_index:
+                if diff < uptoCount:
+                    inrange = 1
 
             rospy.loginfo('++++++++++++++++ inrange : %s ', inrange)
 
@@ -154,7 +159,7 @@ class WaypointUpdater(object):
         lane.header = self.rxd_lane_obj.header
         lane.waypoints = limited_waypoints
 
-        rospy.loginfo('++++++++++++++++++ Broadcasting /final_waypoints +++++++++++++++++++')
+        # rospy.loginfo('++++++++++++++++++ Broadcasting /final_waypoints +++++++++++++++++++')
         self.final_waypoints_pub.publish(lane)
         pass
 
@@ -182,8 +187,12 @@ class WaypointUpdater(object):
         rospy.loginfo('++++++++++++++++ waypoints_cb ++++++++++++++++++++')
         pass
 
-    def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
+    def traffic_cb(self, wp_index):
+        self.is_stop_req = 1
+        self.stop_wayp_index = wp_index
+
+        rospy.loginfo('++++++++++++++++++TTTTTTTTTT self.stop_wayp_index : %s', wp_index)
+
         pass
 
     def obstacle_cb(self, msg):

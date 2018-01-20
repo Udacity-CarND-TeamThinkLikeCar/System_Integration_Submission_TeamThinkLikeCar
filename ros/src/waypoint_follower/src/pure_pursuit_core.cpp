@@ -58,7 +58,7 @@ double PurePursuit::getCmdVelocity(int waypoint) const
 {
   if (current_waypoints_.isEmpty())
   {
-    ROS_INFO_STREAM("waypoint : not loaded path");
+//    ROS_INFO_STREAM("waypoint : not loaded path");
     return 0;
   }
 
@@ -77,7 +77,7 @@ void PurePursuit::calcLookaheadDistance(int waypoint)
                       : ld > maximum_lookahead_distance ? maximum_lookahead_distance
                       : ld ;
 
-  ROS_INFO("lookahead distance: %f",lookahead_distance_);
+ // ROS_INFO("lookahead distance: %f",lookahead_distance_);
 
   return ;
 }
@@ -97,7 +97,7 @@ double PurePursuit::calcCurvature(geometry_msgs::Point target) const
     else
       kappa = -KAPPA_MIN_;
   }
-  ROS_INFO_STREAM("kappa :" << kappa);
+ // ROS_INFO_STREAM("kappa :" << kappa);
   return kappa;
 }
 
@@ -288,7 +288,7 @@ void PurePursuit::getNextWaypoint()
     // if search waypoint is the last
     if (i == (path_size - 1))
     {
-      ROS_INFO("search waypoint is the last");
+   //   ROS_INFO("search waypoint is the last");
       num_of_next_waypoint_ = i;
       return;
     }
@@ -336,7 +336,7 @@ geometry_msgs::TwistStamped PurePursuit::outputTwist(geometry_msgs::Twist t) con
 
 
   double a = v * omega;
-  ROS_INFO("lateral accel = %lf", a);
+ // ROS_INFO("lateral accel = %lf", a);
 
   twist.twist.linear.x = fabs(a) > g_lateral_accel_limit ? max_v
                     : v;
@@ -349,13 +349,13 @@ geometry_msgs::TwistStamped PurePursuit::go()
 {
   if(!pose_set_ || !waypoint_set_ || !velocity_set_){
     if(!pose_set_) {
-       ROS_WARN("position is missing");
+   //    ROS_WARN("position is missing");
      }
      if(!waypoint_set_) {
-       ROS_WARN("waypoint is missing");
+  //     ROS_WARN("waypoint is missing");
      }
      if(!velocity_set_) {
-       ROS_WARN("velocity is missing");
+  //     ROS_WARN("velocity is missing");
     }
     return outputZero();
   }
@@ -367,7 +367,7 @@ geometry_msgs::TwistStamped PurePursuit::go()
   getNextWaypoint();
   if (num_of_next_waypoint_ == -1)
   {
-    ROS_WARN("lost next waypoint");
+//    ROS_WARN("lost next waypoint");
     return outputZero();
   }
   //ROS_ERROR_STREAM("next waypoint = " <<  num_of_next_waypoint_);
@@ -385,7 +385,7 @@ geometry_msgs::TwistStamped PurePursuit::go()
 
   if (!interpolate_flag)
   {
-    ROS_ERROR_STREAM("lost target! ");
+  //  ROS_ERROR_STREAM("lost target! ");
     return outputZero();
   }
 
