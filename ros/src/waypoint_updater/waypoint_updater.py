@@ -190,7 +190,7 @@ class WaypointUpdater(object):
         if wp_index.data == -1:
             self.is_stop_req = 0
             self.stop_wayp_index = 9999999
-        else:
+        elif wp_index.data > self.car_pos_index:
             self.is_stop_req = 1
             self.stop_wayp_index = wp_index.data
 
