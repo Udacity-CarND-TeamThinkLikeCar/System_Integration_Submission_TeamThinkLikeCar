@@ -28,7 +28,7 @@ LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this 
 
 class WaypointUpdater(object):
     def __init__(self):
-        rospy.init_node('waypoint_updater')
+        rospy.init_node('waypoint_updater', log_level=rospy.DEBUG)
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -101,8 +101,8 @@ class WaypointUpdater(object):
             for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
                 limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
 
-       #     rospy.loginfo('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
-       #     rospy.loginfo('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
+            rospy.logdebug('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index )
+            rospy.logdebug('++++++++++++++++  self.stop_wayp_index %d ' , self.stop_wayp_index)
 
             inrange = 0
 
@@ -112,7 +112,9 @@ class WaypointUpdater(object):
                 if diff < uptoCount:
                     inrange = 1
 
-            rospy.loginfo('++++++++++++++++ inrange : %s ', inrange)
+            rospy.logdebug("++++++++++++++++ Stop waypoint inrange %s", inrange)
+            # print("car_position", car_position)
+            #print("Stop waypoint inrange", inrange)
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
@@ -170,7 +172,7 @@ class WaypointUpdater(object):
             self.is_stop_req = 1
             self.stop_wayp_index = wp_index.data
 
-        rospy.loginfo('+++++TTTTT self.stop_wayp_index : %s', wp_index.data)
+        rospy.logdebug('+++++++++++++TTTTTTTTT+++ self.stop_wayp_index : %s', wp_index.data)
 
         pass
 
