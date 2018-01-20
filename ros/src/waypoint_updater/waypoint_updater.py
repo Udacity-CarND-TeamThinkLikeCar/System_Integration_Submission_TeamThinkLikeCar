@@ -23,7 +23,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 60  # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -94,14 +94,17 @@ class WaypointUpdater(object):
                 if wpdist > shortest_dist:
                     foundIndexCount += 1
 
-                if foundIndexCount > 50:  # If distance is increasing, means we found it
+                if foundIndexCount > 25:  # If distance is increasing, means we found it
                     break
 
             self.car_pos_index = index
 
             # Fill the waypoints
             for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
-                limited_waypoints.append(self.rxd_lane_obj.waypoints[count_index])
+                p = self.rxd_lane_obj.waypoints[count_index]
+                limited_waypoints.append(p)
+
+            #limited_waypoints = self.rxd_lane_obj.waypoints[self.car_pos_index: self.car_pos_index + uptoCount]
 
             inrange = 0
 
@@ -139,10 +142,13 @@ class WaypointUpdater(object):
         # else:
         self.last_sent_waypoints = limited_waypoints
 
-        if self.debug_clear == 1:
-            for i in range(0, len(limited_waypoints)):
-                rospy.logdebug('++++++++++++++++   %d ', i)
-                rospy.logdebug('++++++++++++++++  Velocity is :  %d ', limited_waypoints[i].twist.twist.linear.x)
+        #if self.debug_clear == 1:
+        # for i in range(0, len(limited_waypoints)):
+        #     rospy.logdebug('++++++++++++++++   %d ', i)
+        #     rospy.logdebug('++++++++++++++++  Velocity is :  %d ', limited_waypoints[i].twist.twist.linear.x)
+
+        #for i in range(2):
+     #   rospy.logdebug("first 5 wp twist:{}".format(limited_waypoints[0].twist.twist.linear.x))
 
         # Prepare to broadcast
         lane = Lane()
