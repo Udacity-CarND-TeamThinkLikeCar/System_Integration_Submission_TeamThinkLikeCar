@@ -132,11 +132,11 @@ class WaypointUpdater(object):
 
                 limited_waypoints = self.prepare_to_stop(limited_waypoints, self.decrement_factor, curr_stop_index)
 
-        if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index:
-            rospy.logdebug('+++++++++++++ Sending old waypoints')
-            limited_waypoints = self.last_sent_waypoints
-        else:
-            self.last_sent_waypoints = limited_waypoints
+        # if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index:
+        #     rospy.logdebug('+++++++++++++ Sending old waypoints')
+        # #    limited_waypoints = self.last_sent_waypoints
+        # else:
+        self.last_sent_waypoints = limited_waypoints
 
         # for i in range(0, len(limited_waypoints)):
         #     rospy.logdebug('++++++++++++++++   %d ', i)
@@ -162,7 +162,7 @@ class WaypointUpdater(object):
                 limited_waypoints[i].twist.twist.linear.x = self.velocity_array[decrement_factor]
                 decrement_factor -= 1
             elif i > curr_stop_index:
-                limited_waypoints[i].twist.twist.linear.x = -1
+                limited_waypoints[i].twist.twist.linear.x = -5
 
         return limited_waypoints
 
