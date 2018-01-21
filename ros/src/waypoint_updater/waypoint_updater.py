@@ -23,7 +23,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 60  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 80  # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -57,6 +57,25 @@ class WaypointUpdater(object):
                   p1.pose.pose.position.y - p2.pose.pose.position.y, \
                   p1.pose.pose.position.z - p2.pose.pose.position.z
         return math.sqrt(x * x + y * y + z * z)
+
+    def deep_copy_wp(self, waypoint):
+
+        new_wp = Waypoint()
+        new_wp.pose.pose.position.x = waypoint.pose.pose.position.x
+        new_wp.pose.pose.position.y = waypoint.pose.pose.position.y
+        new_wp.pose.pose.position.z = waypoint.pose.pose.position.z
+        new_wp.pose.pose.orientation.x = waypoint.pose.pose.orientation.x
+        new_wp.pose.pose.orientation.y = waypoint.pose.pose.orientation.y
+        new_wp.pose.pose.orientation.z = waypoint.pose.pose.orientation.z
+        new_wp.pose.pose.orientation.w = waypoint.pose.pose.orientation.w
+        new_wp.twist.twist.linear.x = waypoint.twist.twist.linear.x
+        new_wp.twist.twist.linear.y = waypoint.twist.twist.linear.y
+        new_wp.twist.twist.linear.z = waypoint.twist.twist.linear.z
+        new_wp.twist.twist.angular.x = waypoint.twist.twist.angular.x
+        new_wp.twist.twist.angular.y = waypoint.twist.twist.angular.y
+        new_wp.twist.twist.angular.z = waypoint.twist.twist.angular.z
+
+        return new_wp
 
     def pose_cb(self, msg):
 
@@ -101,7 +120,7 @@ class WaypointUpdater(object):
 
             # Fill the waypoints
             for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
-                p = self.rxd_lane_obj.waypoints[count_index]
+                p = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
                 limited_waypoints.append(p)
 
             #limited_waypoints = self.rxd_lane_obj.waypoints[self.car_pos_index: self.car_pos_index + uptoCount]
@@ -142,13 +161,11 @@ class WaypointUpdater(object):
         # else:
         self.last_sent_waypoints = limited_waypoints
 
-        #if self.debug_clear == 1:
         # for i in range(0, len(limited_waypoints)):
-        #     rospy.logdebug('++++++++++++++++   %d ', i)
-        #     rospy.logdebug('++++++++++++++++  Velocity is :  %d ', limited_waypoints[i].twist.twist.linear.x)
-
-        #for i in range(2):
-     #   rospy.logdebug("first 5 wp twist:{}".format(limited_waypoints[0].twist.twist.linear.x))
+        #     vel = limited_waypoints[i].twist.twist.linear.x
+        #     if vel > 10:
+        #         rospy.logdebug('++++++++++++++++   %d ', i)
+        #         rospy.logdebug('++++++++++++++++  Velocity is :  %d ', vel)
 
         # Prepare to broadcast
         lane = Lane()
@@ -170,7 +187,7 @@ class WaypointUpdater(object):
                 limited_waypoints[i].twist.twist.linear.x = self.velocity_array[decrement_factor]
                 decrement_factor -= 1
             elif i > curr_stop_index:
-                limited_waypoints[i].twist.twist.linear.x = -5
+                limited_waypoints[i].twist.twist.linear.x = 0
 
         return limited_waypoints
 
