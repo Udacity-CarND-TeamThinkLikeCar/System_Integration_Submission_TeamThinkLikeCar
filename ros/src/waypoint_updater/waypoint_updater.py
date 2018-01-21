@@ -42,10 +42,10 @@ class WaypointUpdater(object):
         self.last_sent_waypoints = []
         self.car_pos_index = 0
         self.numOfWaypoints = 0
-        self.is_stop_req = 0
+        self.is_stop_req = 1
         self.short_of_points = 0
-        self.stop_wayp_index = 9999999  # Default very high number
-        self.decrement_factor = 49  # We will try to start decrementing speed from these many way points
+        self.stop_wayp_index = 450  # Default very high number
+        self.decrement_factor = 79  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
         self.debug_clear = 0
 
@@ -95,7 +95,7 @@ class WaypointUpdater(object):
         if remaining_pts > 0:
             if remaining_pts < uptoCount:
                 uptoCount = remaining_pts
-                if uptoCount < 50:
+                if uptoCount < 80:
                     self.short_of_points = 1
                     self.stop_wayp_index = self.numOfWaypoints - 1   # The last known index
 
@@ -142,7 +142,7 @@ class WaypointUpdater(object):
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
-                adv_stop_wap = 50
+                adv_stop_wap = 80
                 for i in range(adv_stop_wap):
                     self.velocity_array.append(0)
 
