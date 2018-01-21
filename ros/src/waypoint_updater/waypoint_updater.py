@@ -23,7 +23,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 80  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 80  # Number of waypoints we will publish.
 
 
 class WaypointUpdater(object):
@@ -45,7 +45,7 @@ class WaypointUpdater(object):
         self.is_stop_req = 0
         self.short_of_points = 0
         self.stop_wayp_index = 9999999  # Default very high number
-        self.decrement_factor = 29  # We will try to start decrementing speed from these many way points
+        self.decrement_factor = 39  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
         self.debug_clear = 0
 
@@ -142,10 +142,6 @@ class WaypointUpdater(object):
                 pos_wp = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
                 limited_waypoints.append(pos_wp)
 
-            #limited_waypoints = self.rxd_lane_obj.waypoints[self.car_pos_index: self.car_pos_index + uptoCount]
-
-            # rospy.logdebug("++++++++++++++++ Stop waypoint inrange %s", inrange)
-
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
                 adv_stop_wap = self.decrement_factor + 1
@@ -153,27 +149,10 @@ class WaypointUpdater(object):
                     self.velocity_array.append(0)
 
                 curr_stop_index = self.stop_wayp_index - self.car_pos_index - 2
-                # stop_index_vel = limited_waypoints[curr_stop_index].twist.twist.linear.x
-                #
-                # self.velocity_array[self.decrement_factor] = stop_index_vel
-                # self.velocity_array[self.decrement_factor - 1] = stop_index_vel - 2
-                # self.velocity_array[self.decrement_factor - 2] = stop_index_vel - 3
-                # self.velocity_array[self.decrement_factor - 3] = stop_index_vel - 4
-                # self.velocity_array[self.decrement_factor - 4] = 1
 
                 limited_waypoints = self.prepare_to_stop(limited_waypoints, self.decrement_factor, curr_stop_index)
 
-        # if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index:
-        #     rospy.logdebug('+++++++++++++ Sending old waypoints')
-        # #    limited_waypoints = self.last_sent_waypoints
-        # else:
         self.last_sent_waypoints = limited_waypoints
-
-        # for i in range(0, len(limited_waypoints)):
-        #     vel = limited_waypoints[i].twist.twist.linear.x
-        #     if vel > 10:
-        #         rospy.logdebug('++++++++++++++++   %d ', i)
-        #         rospy.logdebug('++++++++++++++++  Velocity is :  %d ', vel)
 
         # Prepare to broadcast
         lane = Lane()
@@ -216,9 +195,8 @@ class WaypointUpdater(object):
             self.is_stop_req = 1
             self.stop_wayp_index = wp_index.data - 5 # The stop line grace index
             self.debug_clear = 1
-            rospy.logdebug('+++++++++++++Preparing to stop at : %s', wp_index.data)
+            rospy.logdebug('+++++++++++++ Preparing to stop at : %s', wp_index.data)
 
-        #rospy.logdebug('+++++++++++++TTTTTTTTT+++ self.stop_wayp_index : %s', wp_index.data)
         pass
 
     def obstacle_cb(self, msg):
