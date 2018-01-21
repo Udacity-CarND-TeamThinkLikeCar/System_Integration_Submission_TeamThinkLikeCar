@@ -118,13 +118,6 @@ class WaypointUpdater(object):
 
             self.car_pos_index = index
 
-            # Fill the waypoints
-            for count_index in range(self.car_pos_index, self.car_pos_index + uptoCount):
-                p = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
-                limited_waypoints.append(p)
-
-            #limited_waypoints = self.rxd_lane_obj.waypoints[self.car_pos_index: self.car_pos_index + uptoCount]
-
             inrange = 0
 
             diff = self.stop_wayp_index - self.car_pos_index
@@ -133,25 +126,34 @@ class WaypointUpdater(object):
                 if diff < uptoCount:
                     inrange = 1
 
+            num_limited_wp = self.car_pos_index + uptoCount
+
+            if inrange == 1:
+                num_limited_wp = self.stop_wayp_index
+
+            # Fill the waypoints
+            for count_index in range(self.car_pos_index, num_limited_wp):
+                p = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
+                limited_waypoints.append(p)
+
+            #limited_waypoints = self.rxd_lane_obj.waypoints[self.car_pos_index: self.car_pos_index + uptoCount]
+
             # rospy.logdebug("++++++++++++++++ Stop waypoint inrange %s", inrange)
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
-
-                #rospy.logdebug('++++++++++++++++ self.car_pos_index : %d ', self.car_pos_index)
-                #rospy.logdebug('++++++++++++++++  self.stop_wayp_index %d ', self.stop_wayp_index)
 
                 adv_stop_wap = 50
                 for i in range(adv_stop_wap):
                     self.velocity_array.append(0)
 
-                curr_stop_index = self.stop_wayp_index - self.car_pos_index
-                stop_index_vel = limited_waypoints[curr_stop_index].twist.twist.linear.x
-
-                self.velocity_array[self.decrement_factor] = stop_index_vel
-                self.velocity_array[self.decrement_factor - 1] = stop_index_vel - 2
-                self.velocity_array[self.decrement_factor - 2] = stop_index_vel - 3
-                self.velocity_array[self.decrement_factor - 3] = stop_index_vel - 4
-                self.velocity_array[self.decrement_factor - 4] = 1
+                curr_stop_index = self.stop_wayp_index - self.car_pos_index - 2
+                # stop_index_vel = limited_waypoints[curr_stop_index].twist.twist.linear.x
+                #
+                # self.velocity_array[self.decrement_factor] = stop_index_vel
+                # self.velocity_array[self.decrement_factor - 1] = stop_index_vel - 2
+                # self.velocity_array[self.decrement_factor - 2] = stop_index_vel - 3
+                # self.velocity_array[self.decrement_factor - 3] = stop_index_vel - 4
+                # self.velocity_array[self.decrement_factor - 4] = 1
 
                 limited_waypoints = self.prepare_to_stop(limited_waypoints, self.decrement_factor, curr_stop_index)
 
@@ -180,7 +182,7 @@ class WaypointUpdater(object):
         if curr_stop_index < decrement_factor:
             decrement_factor = curr_stop_index
 
-        start_dec_index = curr_stop_index - decrement_factor  # 0 when stop index < 80
+        start_dec_index = curr_stop_index - decrement_factor  # 0 when stop index < 50
 
         for i in range(0, len(limited_waypoints)):
             if start_dec_index <= i <= curr_stop_index:
@@ -210,9 +212,7 @@ class WaypointUpdater(object):
             self.debug_clear = 1
             rospy.logdebug('+++++++++++++Preparing to stop at : %s', wp_index.data)
 
-
         #rospy.logdebug('+++++++++++++TTTTTTTTT+++ self.stop_wayp_index : %s', wp_index.data)
-
         pass
 
     def obstacle_cb(self, msg):
@@ -239,3 +239,5 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
+
