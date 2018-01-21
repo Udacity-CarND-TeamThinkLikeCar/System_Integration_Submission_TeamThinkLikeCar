@@ -27,7 +27,7 @@ class Controller(object):
             # get throttle, if negative, change it to break
             throttle = self.pid.step(proposed_v.x - current_v.x, time.time() - self.last_time)
             if throttle < 0: # if we need to decelerate
-                brake, throttle = -throttle, 0
+                brake, throttle = - 10 * throttle, 0
             #    brake = self.lpf.filt(brake)
             else:
                 brake = 0

@@ -34,7 +34,7 @@ class WaypointUpdater(object):
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
-        #    rospy.Subscriber('/obstacle_waypoint', Int32, self.obstacle_cb) // Assuming Int32 here
+        rospy.Subscriber('/obstacle_waypoint', Int32, self.obstacle_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -45,7 +45,7 @@ class WaypointUpdater(object):
         self.is_stop_req = 0
         self.short_of_points = 0
         self.stop_wayp_index = 9999999  # Default very high number
-        self.decrement_factor = 59  # We will try to start decrementing speed from these many way points
+        self.decrement_factor = 29  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
         self.debug_clear = 0
 
@@ -214,7 +214,7 @@ class WaypointUpdater(object):
 
         elif wp_index.data > self.car_pos_index:
             self.is_stop_req = 1
-            self.stop_wayp_index = wp_index.data
+            self.stop_wayp_index = wp_index.data - 5 # The stop line grace index
             self.debug_clear = 1
             rospy.logdebug('+++++++++++++Preparing to stop at : %s', wp_index.data)
 
