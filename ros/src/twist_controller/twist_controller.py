@@ -13,7 +13,7 @@ class Controller(object):
                 accel_limit, wheel_radius, wheel_base,
                 steer_ratio, max_lat_accel, max_steer_angle):
         min_speed = 1.0 * ONE_MPH
-        self.pid = PID(0.3, 0.003, 4.0)
+        self.pid = PID(2.0, 0.4, 0.1)
         self.lpf = LowPassFilter(0.5, 0.02)
         self.yaw = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
 
@@ -28,7 +28,7 @@ class Controller(object):
             throttle = self.pid.step(proposed_v.x - current_v.x, time.time() - self.last_time)
             if throttle < 0: # if we need to decelerate
                 brake, throttle = -throttle, 0
-                brake = self.lpf.filt(brake)
+            #    brake = self.lpf.filt(brake)
             else:
                 brake = 0
             throttle = min(1.0, throttle) # cap between [0, 1]
