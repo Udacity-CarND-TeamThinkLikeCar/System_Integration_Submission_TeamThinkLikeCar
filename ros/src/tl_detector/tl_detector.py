@@ -7,11 +7,13 @@ from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
+from scipy.spatial import distance
 import tf
 import cv2
 import yaml
 import numpy as np
 import timeit
+
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -78,7 +80,11 @@ class TLDetector(object):
 
         self.has_image = True
         self.camera_image = msg
+        
+        start = timeit.default_timer()
         light_wp, state = self.process_traffic_lights()
+        end = timeit.default_timer()
+        rospy.logdebug("process_traffic_lights took: {} ms".format((end- start) *1000.0))
         '''
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
@@ -112,10 +118,10 @@ class TLDetector(object):
         """
         if self.waypoints is not None:
             node = self.get_coordinates_vector(pose.position)
-            waypoints = np.asarray([self.get_coordinates_vector(waypoint.pose.pose.position) for waypoint in
+            waypoints = np.asarray([[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y, waypoint.pose.pose.position.z] for waypoint in
                                     self.waypoints.waypoints])
-            distance_2 = np.sum((waypoints - node)**2, axis=1)
-            nearest_index = np.argmin(distance_2)
+            #nearest_index = np.sum((waypoints - node)**2, axis=1).argmin()
+            nearest_index = distance.cdist([node], waypoints).argmin()
         else:
             rospy.logdebug("no  waypoints")
 
@@ -181,7 +187,6 @@ class TLDetector(object):
                     light=None
 
             #light=1
-
 
         #TODO find the closest visible traffic light (if one exists)
         if light is not None:
