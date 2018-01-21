@@ -42,9 +42,9 @@ class WaypointUpdater(object):
         self.last_sent_waypoints = []
         self.car_pos_index = 0
         self.numOfWaypoints = 0
-        self.is_stop_req = 1
+        self.is_stop_req = 0
         self.short_of_points = 0
-        self.stop_wayp_index = 450  # Default very high number
+        self.stop_wayp_index = 9999999  # Default very high number
         self.decrement_factor = 59  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
         self.debug_clear = 0
