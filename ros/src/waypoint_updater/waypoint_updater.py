@@ -45,7 +45,7 @@ class WaypointUpdater(object):
         self.is_stop_req = 1
         self.short_of_points = 0
         self.stop_wayp_index = 450  # Default very high number
-        self.decrement_factor = 79  # We will try to start decrementing speed from these many way points
+        self.decrement_factor = 59  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
         self.debug_clear = 0
 
@@ -77,46 +77,52 @@ class WaypointUpdater(object):
 
         return new_wp
 
+    def update_current_postion_wp(self, pos_wp):
+        index = self.car_pos_index
+        foundIndexCount = 0
+        shortest_dist = 9999999  # Default very high number
+
+        for i in range(self.car_pos_index, self.numOfWaypoints):  # (self.car_pos_index + uptoCount + 200)):
+            wpdist = self.euclidean_dist(pos_wp, self.rxd_lane_obj.waypoints[i])
+
+            if wpdist < shortest_dist:
+                shortest_dist = wpdist
+                foundIndexCount = 0
+                index = i  # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
+
+            if wpdist > shortest_dist:
+                foundIndexCount += 1
+
+            if foundIndexCount > 25:  # If distance is increasing, means we found it
+                break
+
+        self.car_pos_index = index
+
     def pose_cb(self, msg):
 
         limited_waypoints = []
 
-        p = Waypoint()
+        pos_wp = Waypoint()
 
-        p.pose.pose.position.x = msg.pose.position.x
-        p.pose.pose.position.y = msg.pose.position.y
-        p.pose.pose.position.z = msg.pose.position.z
+        pos_wp.pose.pose.position.x = msg.pose.position.x
+        pos_wp.pose.pose.position.y = msg.pose.position.y
+        pos_wp.pose.pose.position.z = msg.pose.position.z
 
-        shortest_dist = 9999999  # Default very high number
         uptoCount = LOOKAHEAD_WPS  # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
-        remaining_pts = (self.numOfWaypoints - self.car_pos_index + 1)
+        self.update_current_postion_wp(pos_wp)
 
-        if remaining_pts > 0:
-            if remaining_pts < uptoCount:
-                uptoCount = remaining_pts
-                if uptoCount < 80:
+        total_points_to_send = (self.numOfWaypoints - self.car_pos_index + 1)
+
+        if self.is_stop_req == 1 and self.car_pos_index >= self.stop_wayp_index:
+            total_points_to_send = 0
+
+        if total_points_to_send > 0:
+            if total_points_to_send < uptoCount:
+                uptoCount = total_points_to_send
+                if uptoCount < self.decrement_factor + 1:
                     self.short_of_points = 1
                     self.stop_wayp_index = self.numOfWaypoints - 1   # The last known index
-
-            index = self.car_pos_index
-            foundIndexCount = 0
-
-            for i in range(self.car_pos_index, self.numOfWaypoints):  #(self.car_pos_index + uptoCount + 200)):
-                wpdist = self.euclidean_dist(p, self.rxd_lane_obj.waypoints[i])
-
-                if wpdist < shortest_dist:
-                    shortest_dist = wpdist
-                    foundIndexCount = 0
-                    index = i  # Should be next nearest waypoint index in self.rxd_lane_obj.waypoints
-
-                if wpdist > shortest_dist:
-                    foundIndexCount += 1
-
-                if foundIndexCount > 25:  # If distance is increasing, means we found it
-                    break
-
-            self.car_pos_index = index
 
             inrange = 0
 
@@ -133,8 +139,8 @@ class WaypointUpdater(object):
 
             # Fill the waypoints
             for count_index in range(self.car_pos_index, num_limited_wp):
-                p = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
-                limited_waypoints.append(p)
+                pos_wp = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
+                limited_waypoints.append(pos_wp)
 
             #limited_waypoints = self.rxd_lane_obj.waypoints[self.car_pos_index: self.car_pos_index + uptoCount]
 
@@ -142,7 +148,7 @@ class WaypointUpdater(object):
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
-                adv_stop_wap = 80
+                adv_stop_wap = self.decrement_factor + 1
                 for i in range(adv_stop_wap):
                     self.velocity_array.append(0)
 
@@ -182,7 +188,7 @@ class WaypointUpdater(object):
         if curr_stop_index < decrement_factor:
             decrement_factor = curr_stop_index
 
-        start_dec_index = curr_stop_index - decrement_factor  # 0 when stop index < 50
+        start_dec_index = curr_stop_index - decrement_factor  # 0 when stop index < self.decrement_factor + 1
 
         for i in range(0, len(limited_waypoints)):
             if start_dec_index <= i <= curr_stop_index:
