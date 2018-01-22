@@ -4,6 +4,8 @@
 
 This repo contains the submissions and related material for Udacity "Self Driving Car" Nano degree program's Term 3 - Project 3, "System-Integration"
 
+![alt text](https://github.com/Udacity-CarND-TeamThinkLikeCar/System_Integration_Submission_TeamThinkLikeCar/blob/master/imgs/carla.png)
+
 ## Team Member
 
 * Sulabh Matele (sulabhmatele@gmail.com)
@@ -12,7 +14,10 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 * Ankit Jain (asj.ankit@gmail.com)
 * Frank Xia (tyxia2004@gmail.com)
 
-## System Architecture Diagram
+## Overall autonomous car overview in a picture
+![alt text](https://github.com/Udacity-CarND-TeamThinkLikeCar/System_Integration_Submission_TeamThinkLikeCar/blob/master/imgs/overall.png)
+
+## System-Integration Architecture Diagram
 Here we use ROS nodes to implement core functionality of the autonomous vehicle system, including traffic light detection, control, and waypoint following. The code was tested in a simulator, and later run on [Carla](https://medium.com/udacity/how-the-udacity-self-driving-car-works-575365270a40), the Udacity's own self-driving car. 
 
 The following is a system architecture diagram showing the ROS nodes and topics used in the project.
