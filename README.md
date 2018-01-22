@@ -13,7 +13,7 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 | Sulabh Matele | sulabhmatele@gmail.com | . |
 | Clint Adams   | clintonadams23@gmail.com |   ![Clint](./imgs/clint.jpg) |
 | Sunil Prakash | prakashsunil@gmail.com |  ![Sunil](./imgs/sunil.jpg)  |
-| Ankit Jain | asj.ankit@gmail.com |  .  |
+| Ankit Jain | asj.ankit@gmail.com |   ![Ankit](./imgs/ankit.jpg)  |
 | Frank Xia| tyxia2004@gmail.com |  ![Frank](./imgs/frank.jpg) |
 
 * Sulabh Matele (sulabhmatele@gmail.com)
