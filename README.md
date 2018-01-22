@@ -8,9 +8,16 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 
 ## Team Member
 
+| Team Members  | Email         |       |
+| ------------- |:-------------:| -----:|
+| Sulabh Matele | sulabhmatele@gmail.com | . |
+| Clint Adams   | clintonadams23@gmail.com |   ![Clint](./imgs/clint.jpg) |
+| Sunil Prakash | prakashsunil@gmail.com |  ![Sunil](./imgs/sunil.jpg)  |
+| Ankit Jain | asj.ankit@gmail.com |  .  |
+| Frank Xia| tyxia2004@gmail.com |  .  |
+
 * Sulabh Matele (sulabhmatele@gmail.com)
 * Clint Adams (clintonadams23@gmail.com)
-![Clint](./imgs/clint.jpg)
 * Sunil Prakash (prakashsunil@gmail.com)
 * Ankit Jain (asj.ankit@gmail.com)
 * Frank Xia (tyxia2004@gmail.com)
@@ -46,6 +53,20 @@ Different challenges in implementation of Waypoint Updater:
 ### Twist Controller Node (dbw_node)
 
 ### Traffic light detection node (tl_detector)
+
+This node is responsible for the traffic light detection  and classifying. 
+If the traffic light is found and is as red then it locates the closest waypoint to that red light's stop line and publishes the index of that waypoint to the /traffic_waypoint topic.
+
+tl_detector node subscribes to the following topics:
+
+- **/base_waypoints**: Waypoints for the whole track are published to this topic. This publication is a one-time only operation.
+- **/current_pose**: To receive the current position of the vehicle.
+- **/image_color**: To receive camera images to identify the traffic light state. Every time a new image is received, the traffic light node finds the location of the current car with respect to the traffic light, it is close to traffic light,
+it calls the classifier to find the state of the light, if it is red, it sends the waypoint and traffic light index to waypoint_follower node.
+- **/vehicle/traffic_lights**: If ground truth data has been created. 
+This topic provides the location of the traffic light in the map space and helps acquiring an accurate ground truth data source for the traffic light classifier by sending the current color state of all traffic lights in the simulator. 
+
+
 ##### Training Data
 [Bosch's taffic light dataset](https://hci.iwr.uni-heidelberg.de/node/6132)
 
