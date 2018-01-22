@@ -8,10 +8,50 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 
 ## Team Member
 
+<table>
+ <tr>
+    <th>Member</th>
+    <th>Email</th>
+    <th>&nbsp;</th>
+    
+ </tr>
+ 
+ <tr>
+    <td>Sulabh Matele</td>
+    <td>sulabhmatele@gmail.com</td>
+    <td>&nbsp;</td>
+ </tr>
+ 
+ <tr>
+    <td>Clint Adams</td>
+    <td>clintonadams23@gmail.com</td>
+    <td> <img src="imgs/clint.jpg" width="200px"> </td>
+ </tr>
+ 
+ <tr>
+    <td>Sunil Prakash</td>
+    <td>prakashsunil@gmail.com</td>
+    <td><img src="imgs/sunil.jpg" width="200px"></td>
+ </tr>
+ 
+ <tr>
+    <td>Ankit Jain</td>
+    <td>asj.ankit@gmail.com</td>
+    <td>&nbsp;</td>
+ </tr>
+ 
+ <tr>
+    <td>Frank Xia</td>
+    <td>tyxia2004@gmail.com</td>
+    <td>&nbsp;</td>
+ </tr>
+ 
+</table>
+
 | Team Members  | Email         |       |
 | ------------- |:-------------:| -----:|
 | Sulabh Matele | sulabhmatele@gmail.com | . |
-| Clint Adams   | clintonadams23@gmail.com |   ![Clint](./imgs/clint.jpg) |
+| Clint Adams   | clintonadams23@gmail.com |   ![Clint](./imgs/clint.jpg ) |
 | Sunil Prakash | prakashsunil@gmail.com |  ![Sunil](./imgs/sunil.jpg)  |
 | Ankit Jain | asj.ankit@gmail.com |  .  |
 | Frank Xia| tyxia2004@gmail.com |  .  |
