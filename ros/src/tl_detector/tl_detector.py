@@ -19,7 +19,7 @@ STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
-        rospy.init_node('tl_detector', log_level=rospy.DEBUG)
+        rospy.init_node('tl_detector')
 
         self.pose = None
         self.waypoints = None 
@@ -76,7 +76,6 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
-        rospy.logdebug("image_cb....")
 
         self.has_image = True
         self.camera_image = msg
@@ -84,7 +83,6 @@ class TLDetector(object):
         start = timeit.default_timer()
         light_wp, state = self.process_traffic_lights()
         end = timeit.default_timer()
-        rospy.logdebug("process_traffic_lights took: {} ms".format((end- start) *1000.0))
         '''
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
@@ -120,7 +118,6 @@ class TLDetector(object):
             node = self.get_coordinates_vector(pose.position)
             waypoints = np.asarray([[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y, waypoint.pose.pose.position.z] for waypoint in
                                     self.waypoints.waypoints])
-            #nearest_index = np.sum((waypoints - node)**2, axis=1).argmin()
             nearest_index = distance.cdist([node], waypoints).argmin()
         else:
             rospy.logdebug("no  waypoints")
@@ -171,9 +168,6 @@ class TLDetector(object):
         min_idx_dist = 150
         if(self.pose):
             car_position = self.get_closest_waypoint(self.pose.pose)
-            rospy.logdebug(car_position)
-            print("car_position",car_position)
-
             for i, stop_line_idx in enumerate(self.stop_lines):
                 idx_dist = stop_line_idx - car_position
 
