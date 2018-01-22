@@ -45,7 +45,7 @@ class WaypointUpdater(object):
         self.is_stop_req = 0
         self.short_of_points = 0
         self.stop_wayp_index = 9999999  # Default very high number
-        self.decrement_factor = 39  # We will try to start decrementing speed from these many way points
+        self.decrement_factor = 29  # We will try to start decrementing speed from these many way points
         self.velocity_array = []
         self.debug_clear = 0
 
@@ -108,7 +108,7 @@ class WaypointUpdater(object):
         pos_wp.pose.pose.position.y = msg.pose.position.y
         pos_wp.pose.pose.position.z = msg.pose.position.z
 
-        uptoCount = LOOKAHEAD_WPS  # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
+        uptoCount = LOOKAHEAD_WPS - 1 # Since we sent 200 pts last time so the nearest pt could be max at 200 distance
 
         self.update_current_postion_wp(pos_wp)
 
@@ -139,8 +139,9 @@ class WaypointUpdater(object):
 
             # Fill the waypoints
             for count_index in range(self.car_pos_index, num_limited_wp):
-                pos_wp = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
-                limited_waypoints.append(pos_wp)
+                if count_index < len(self.rxd_lane_obj.waypoints):
+                    pos_wp = self.deep_copy_wp(self.rxd_lane_obj.waypoints[count_index])
+                    limited_waypoints.append(pos_wp)
 
             if (self.is_stop_req == 1 and inrange == 1) or self.short_of_points == 1:
 
@@ -181,21 +182,26 @@ class WaypointUpdater(object):
     def waypoints_cb(self, lane):
         self.rxd_lane_obj = lane
         self.numOfWaypoints = len(self.rxd_lane_obj.waypoints)
+
         # Uncomment this, if you want to test on short track
-        #self.numOfWaypoints = self.numOfWaypoints // 30
-        pass
+        # self.numOfWaypoints = self.numOfWaypoints // 25
+        # wayp = []
+        # for i in range(0, self.numOfWaypoints):
+        #     wayp.append(self.rxd_lane_obj.waypoints[i])
+        # pass
+        # self.rxd_lane_obj.waypoints = wayp
 
     def traffic_cb(self, wp_index):
         if wp_index.data == -1:
             self.is_stop_req = 0
             self.stop_wayp_index = 9999999
-            rospy.logdebug('+++++++++++++ Clearing Stop Request, if any')
+            #rospy.logdebug('+++++++++++++ Clearing Stop Request, if any')
 
         elif wp_index.data > self.car_pos_index:
             self.is_stop_req = 1
             self.stop_wayp_index = wp_index.data - 5 # The stop line grace index
             self.debug_clear = 1
-            rospy.logdebug('+++++++++++++ Preparing to stop at : %s', wp_index.data)
+            #rospy.logdebug('+++++++++++++ Preparing to stop at : %s', wp_index.data)
 
         pass
 
