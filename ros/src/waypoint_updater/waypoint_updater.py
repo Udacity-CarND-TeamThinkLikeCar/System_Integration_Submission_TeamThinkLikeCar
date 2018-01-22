@@ -120,7 +120,7 @@ class WaypointUpdater(object):
         if total_points_to_send > 0:
             if total_points_to_send < uptoCount:
                 uptoCount = total_points_to_send
-                if uptoCount < self.decrement_factor + 1:
+                if uptoCount < self.decrement_factor - 10: 
                     self.short_of_points = 1
                     self.stop_wayp_index = self.numOfWaypoints - 1   # The last known index
 
