@@ -13,7 +13,8 @@ class Controller(object):
                 accel_limit, wheel_radius, wheel_base,
                 steer_ratio, max_lat_accel, max_steer_angle):
         min_speed = 1.0 * ONE_MPH
-        self.pid = PID(2.0, 0.4, 0.1)
+        # self.pid = PID(2.0, 0.4, 0.1)
+        self.pid = PID(0.3, 0.003, 4.0)
         self.lpf = LowPassFilter(0.5, 0.02)
         self.yaw = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
         self.v_mass = vehicle_mass
@@ -33,9 +34,9 @@ class Controller(object):
             throttle = max(0.0, min(1.0, throttle))
 
             if error < 0: # if we need to decelerate
-                deceleration = abs(error) / dt
-                if abs(deceleration ) > abs(self.d_limit) * 500:
-                    deceleration = self.d_limit * 500
+                deceleration = abs(error) / 50
+                if abs(deceleration ) > abs(self.d_limit) / 50:
+                    deceleration = self.d_limit / 50
                 longitudinal_force = self.v_mass * deceleration
                 brake = longitudinal_force * self.w_radius
 
