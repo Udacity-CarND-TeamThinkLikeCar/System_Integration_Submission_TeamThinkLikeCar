@@ -37,13 +37,13 @@ This repo contains the submissions and related material for Udacity "Self Drivin
  <tr>
     <td>Ankit Jain</td>
     <td>asj.ankit@gmail.com</td>
-    <td>&nbsp;</td>
+    <td><img src="imgs/ankit.jpg" width="100px"></td>
  </tr>
  
  <tr>
     <td>Frank Xia</td>
     <td>tyxia2004@gmail.com</td>
-    <td>&nbsp;</td>
+    <td><img src="imgs/frank.jpg" width="100px"></td>
  </tr>
  
 </table>
@@ -85,6 +85,32 @@ Different challenges in implementation of Waypoint Updater:
 + The last challenge was to resolve the condition when the car is at end of the track and our list of waypoints is about to be finished. This condition is handled as an special condition and we set `self.short_of_points`, which then takes care of setting velocities to 0, near end of waypoints. 
 
 ### Twist Controller Node (dbw_node)
+This node will read the current state and future velocity from the system to provide the best `(throttle, brake, steering)` tuple.
+
+**Publisher**:
+
+- `/vehicle/steering_cmd`: provide the steering angle of the next step.
+- `/vehicle/throttle_cmd`: provide the throttle of the next step.
+- `/vehicle/brake_cmd`: provide the brake of the next step.
+
+**Subscriber**:
+
+- `/twist_cmd`: the next angular and linear velocity of the car
+- `/current_velocity`: the current velocity of the car
+- `/dbw_enabled`: whether a driver is taking control of the car. If `false`, the controller will not do anything.
+
+**Important features**:
+
+- The current command frequency is set to 50HZ for optimal performance.
+- The *steer* value is calculated using the `YawController` class with the given `wheel_base`, `steer_ratio`, `min_speed`, `max_lat_accel`, `max_steer_angle`
+- The throttle value is calculated using `PID` class with 
+    -   `kp = 2.0`
+    -   `ki = 0.4`
+    -   `kd = 0.1`
+-   The brake value is calculated using `brake = vehicle_mass * wheel_radius * (current_v - target_v)/update_frequency`
+
+
+
 
 ### Traffic light detection node (tl_detector)
 
@@ -143,8 +169,3 @@ Bosch labeled the data with bounding boxes instead of a single label. To get aro
 ![multiple lights](./imgs/multiple-lights.png)
 
 Performance was another challenge. During testing, we utilized a simulator running on a virutal machine image with dependencies similar to what would be used on the car. We noticed a considerable amount of latency between each prediction. The natural assumption was that it was because of the model running inference. So we optimized and experimented with different Mobilenet hyper-parameters. After profiling it was revealed that there were sections of the code that could be optimized, and that the model was not the bottleneck. This solved the performance issues.  
-
-
-
-
-
