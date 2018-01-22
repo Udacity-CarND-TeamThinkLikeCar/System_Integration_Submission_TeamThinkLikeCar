@@ -16,7 +16,9 @@ class Controller(object):
         self.pid = PID(2.0, 0.4, 0.1)
         self.lpf = LowPassFilter(0.5, 0.02)
         self.yaw = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
-
+        self.v_mass = vehicle_mass
+        self.w_radius = wheel_radius
+        self.d_limit = decel_limit
         self.last_time = None
 
     def control(self, proposed_v, proposed_omega, current_v):
@@ -24,17 +26,27 @@ class Controller(object):
         if self.last_time is None:
             throttle, brake, steer = 1.0, 0.0, 0.0
         else:
+            dt = time.time() - self.last_time
             # get throttle, if negative, change it to break
-            throttle = self.pid.step(proposed_v.x - current_v.x, time.time() - self.last_time)
-            if throttle < 0: # if we need to decelerate
-                brake, throttle = -throttle, 0
-            #    brake = self.lpf.filt(brake)
+            error = proposed_v.x - current_v.x
+            throttle = self.pid.step(error, time.time() - self.last_time)
+            throttle = max(0.0, min(1.0, throttle))
+
+            if error < 0: # if we need to decelerate
+                deceleration = abs(error) / dt
+                if abs(deceleration ) > abs(self.d_limit) * 500:
+                    deceleration = self.d_limit * 500
+                longitudinal_force = self.v_mass * deceleration
+                brake = longitudinal_force * self.w_radius
+
+                throttle = 0
             else:
                 brake = 0
-            throttle = min(1.0, throttle) # cap between [0, 1]
             steer = self.yaw.get_steering(proposed_v.x, proposed_omega.z, current_v.x)
 
         self.last_time = time.time() # update time
+        # rospy.logwarn('proposed v:    {}'.format(proposed_v.x))
+        # rospy.logwarn('current v:    {}'.format(current_v.x))
         # rospy.logwarn('Error:    {}'.format(proposed_v.x - current_v.x))
         # rospy.logwarn('Throttle: {}'.format(throttle))
         # rospy.logwarn('Brake:    {}'.format(brake))
