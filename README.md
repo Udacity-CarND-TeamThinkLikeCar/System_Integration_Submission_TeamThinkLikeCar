@@ -10,6 +10,7 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 
 * Sulabh Matele (sulabhmatele@gmail.com)
 * Clint Adams (clintonadams23@gmail.com)
+![Clint](./imgs/clint.jpg)
 * Sunil Prakash (prakashsunil@gmail.com)
 * Ankit Jain (asj.ankit@gmail.com)
 * Frank Xia (tyxia2004@gmail.com)
@@ -45,8 +46,48 @@ Different challenges in implementation of Waypoint Updater:
 ### Twist Controller Node (dbw_node)
 
 ### Traffic light detection node (tl_detector)
+##### Training Data
+[Bosch's taffic light dataset](https://hci.iwr.uni-heidelberg.de/node/6132)
 
-### TLClassifier class (tl_classifier)
+example:
+
+![Bosch Example](./imgs/bosch-example.png)
+
+Hand labeled Udacity Simulator data
+
+example:
+
+![Sim Example](./imgs/sim-example.png)
+
+Hand labeled [Udacity Traffic Light Detection Test Video data](https://drive.google.com/file/d/0B2_h37bMVw3iYkdJTlRSUlJIamM/view?usp=sharing)
+
+example:
+
+![Sim Example](./imgs/rosbag-example.jpg)
+
+Train data count: 11125
+Validation data count: 3178
+Test data count: 1589
+
+##### Approach
+For the task of classifying traffic lights, we fed images recorded from the vehicles camera through a convolutional neural network. Because the classifier would be running at high frequency, in real time, we needed an architecture with relatively few parameters. A fine-tuned [Mobilenet](https://arxiv.org/pdf/1704.04861.pdf) offered a good balance between efficiency and accuracy. 
+
+![Mobilenet Architecture](./imgs/mobilenet.png)
+
+Because we have data for stop line locations available, we decided not to use an object detection approach and instead classify entire images as containing, simply, a red, yellow, or green light. It can be seen in the [Mobilenet paper](https://arxiv.org/pdf/1704.04861.pdf) that using an object detection based approach such as Faster-RCNN or SSD brings the number of mult-adds from the order of millions to the order of billions. We felt this was an unncessary use of resources for the task, as defined.
+
+![Mult Adds](./imgs/mult-adds.png)
+
+Keras offers a [friendly api](https://keras.io/applications/#mobilenet) for loading a Mobilenet model pretrained on the imagenet dataset. We used this, along with various image augmentation techniques, to train the model we would use for classification. We quickly found that using Keras in the inference stage did not offer acceptable performance, however, so we converted the fine-tuned model to a tensorflow protobuf file. We also applied various optimizations, including freezing the graph and running the Tensorflow optimize_for_inference script. With this, we were able to get the inference time to less than 100 ms per image on a cpu.
+
+##### Challenges
+Acquiring training data was a major challenge. Bosch, helpfully, made their traffic light training data available. The Bosch data (realistically) contained many images that had more than one light, making it unclear what the singular label of that image should be. 
+
+Bosch labeled the data with bounding boxes instead of a single label. To get around this, we labeled the images using the label of the largest bounding in each image.
+
+![multiple lights](./imgs/multiple-lights.png)
+
+Performance was another challenge. During testing, we utilized a simulator running on a virutal machine image with dependencies similar to what would be used on the car. We noticed a considerable amount of latency between each prediction. The natural assumption was that it was because of the model running inference. So we optimized and experimented with different Mobilenet hyper-parameters. After profiling it was revealed that there were sections of the code that could be optimized, and that the model was not the bottleneck. This solved the performance issues.  
 
 
 
