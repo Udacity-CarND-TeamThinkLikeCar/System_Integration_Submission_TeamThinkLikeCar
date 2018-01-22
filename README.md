@@ -25,25 +25,25 @@ This repo contains the submissions and related material for Udacity "Self Drivin
  <tr>
     <td>Clint Adams</td>
     <td>clintonadams23@gmail.com</td>
-    <td> <img src="imgs/clint.jpg" width="100px" > </td>
+    <td> <img src="imgs/clint.jpg" width="150px" > </td>
  </tr>
  
  <tr>
     <td>Sunil Prakash</td>
     <td>prakashsunil@gmail.com</td>
-    <td><img src="imgs/sunil.jpg" width="100px"></td>
+    <td><img src="imgs/sunil.jpg" width="150px"></td>
  </tr>
  
  <tr>
     <td>Ankit Jain</td>
     <td>asj.ankit@gmail.com</td>
-    <td><img src="imgs/ankit.jpg" width="100px"></td>
+    <td><img src="imgs/ankit.jpg" width="150px"></td>
  </tr>
  
  <tr>
     <td>Frank Xia</td>
     <td>tyxia2004@gmail.com</td>
-    <td><img src="imgs/frank.jpg" width="100px"></td>
+    <td><img src="imgs/frank.jpg" width="150px"></td>
  </tr>
  
 </table>
