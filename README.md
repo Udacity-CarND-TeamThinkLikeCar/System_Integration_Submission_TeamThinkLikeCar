@@ -19,7 +19,7 @@ This repo contains the submissions and related material for Udacity "Self Drivin
  <tr>
     <td>Sulabh Matele</td>
     <td>sulabhmatele@gmail.com</td>
-    <td>&nbsp;</td>
+    <td><img src="imgs/sulabh.JPG" width="150px" > </td>
  </tr>
  
  <tr>
@@ -49,12 +49,6 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 </table>
 
 
-
-* Sulabh Matele (sulabhmatele@gmail.com)
-* Clint Adams (clintonadams23@gmail.com)
-* Sunil Prakash (prakashsunil@gmail.com)
-* Ankit Jain (asj.ankit@gmail.com)
-* Frank Xia (tyxia2004@gmail.com)
 
 ## Overall autonomous car overview in a picture
 ![alt text](https://github.com/Udacity-CarND-TeamThinkLikeCar/System_Integration_Submission_TeamThinkLikeCar/blob/master/imgs/overall.png)
