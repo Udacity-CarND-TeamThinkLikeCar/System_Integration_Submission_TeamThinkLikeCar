@@ -25,13 +25,13 @@ This repo contains the submissions and related material for Udacity "Self Drivin
  <tr>
     <td>Clint Adams</td>
     <td>clintonadams23@gmail.com</td>
-    <td> <img src="imgs/clint.jpg" width="200px"> </td>
+    <td> <img src="imgs/clint.jpg" width="180px"> </td>
  </tr>
  
  <tr>
     <td>Sunil Prakash</td>
     <td>prakashsunil@gmail.com</td>
-    <td><img src="imgs/sunil.jpg" width="200px"></td>
+    <td><img src="imgs/sunil.jpg" width="180px"></td>
  </tr>
  
  <tr>
@@ -48,13 +48,7 @@ This repo contains the submissions and related material for Udacity "Self Drivin
  
 </table>
 
-| Team Members  | Email         |       |
-| ------------- |:-------------:| -----:|
-| Sulabh Matele | sulabhmatele@gmail.com | . |
-| Clint Adams   | clintonadams23@gmail.com |   ![Clint](./imgs/clint.jpg ) |
-| Sunil Prakash | prakashsunil@gmail.com |  ![Sunil](./imgs/sunil.jpg)  |
-| Ankit Jain | asj.ankit@gmail.com |  .  |
-| Frank Xia| tyxia2004@gmail.com |  .  |
+
 
 * Sulabh Matele (sulabhmatele@gmail.com)
 * Clint Adams (clintonadams23@gmail.com)
