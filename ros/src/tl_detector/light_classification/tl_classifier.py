@@ -8,7 +8,7 @@ import rospy
 class TLClassifier(object):
     def __init__(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        model_file = dir_path + "/mobilenet-ft.pb"
+        model_file = dir_path + "/mobilenet_ft_1.0_192.pb"
         input_name = "import/input_1"
         output_name = "import/output_node0"
         graph = self.__load_graph(model_file)
