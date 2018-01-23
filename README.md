@@ -19,7 +19,7 @@ This repo contains the submissions and related material for Udacity "Self Drivin
  <tr>
     <td>Sulabh Matele</td>
     <td>sulabhmatele@gmail.com</td>
-    <td><img src="imgs/sulabh1.JPG" width="150px" > </td>
+    <td><img src="imgs/sulabh.JPG" width="150px" > </td>
  </tr>
  
  <tr>
