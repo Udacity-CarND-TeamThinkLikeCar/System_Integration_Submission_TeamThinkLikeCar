@@ -19,7 +19,7 @@ STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
-        rospy.init_node('tl_detector')
+        rospy.init_node('tl_detector', log_level=rospy.DEBUG)
 
         self.pose = None
         self.waypoints = None 
@@ -172,7 +172,6 @@ class TLDetector(object):
                 idx_dist = stop_line_idx - car_position
 
                 if 0 < idx_dist < min_idx_dist:
-                    print("idx_dist", idx_dist)
                     light = i
                     min_idx_dist = idx_dist
                     light_wp = stop_line_idx
@@ -185,7 +184,6 @@ class TLDetector(object):
         #TODO find the closest visible traffic light (if one exists)
         if light is not None:
             state = self.get_light_state(light)
-            print("returning ",light_wp,state )
             return light_wp, state
         #self.waypoints = None
         return -1, TrafficLight.UNKNOWN
