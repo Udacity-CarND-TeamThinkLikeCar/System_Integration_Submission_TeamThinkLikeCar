@@ -2,7 +2,14 @@
 
 ## Overview
 
-This repo contains the submissions and related material for Udacity "Self Driving Car" Nano degree program's Term 3 - Project 3, "System-Integration"
+This repo contains the submissions and related material for "Team: Think Like Car" for Udacity "Self Driving Car" Nano degree program's Term 3 - Project 3, "System-Integration"
+
+## Goal of the project
+The main goal of the project is to write different nodes of ROS, to be able to successfully run the code on Udacity self driving car "Carla". The code will be first tested on simulator then on car. The key implementations are :
+
++ Detection of Traffic lights - RED, YELLOW, GREEN
++ Stopping car on RED, moving on GREEN
++ Sending the control command on drive by wire, for throttle, brake and steering for car to be controlled and be able to move.
 
 ![alt text](https://github.com/Udacity-CarND-TeamThinkLikeCar/System_Integration_Submission_TeamThinkLikeCar/blob/master/imgs/carla.png)
 
@@ -49,6 +56,25 @@ This repo contains the submissions and related material for Udacity "Self Drivin
 </table>
 
 
+## Simulator 
+
+<table>
+ <tr>
+    <th>Description</th>
+    <th>&nbsp;</th>
+ </tr>
+ 
+ <tr>
+    <td>Car stopping on RED</td>
+    <td><img src="imgs/movegreen.png" width="150px" > </td>
+ </tr>
+ 
+ <tr>
+    <td>Car moves back on GREEN</td>
+    <td> <img src="imgs/stopred.png" width="150px" > </td>
+ </tr>
+ 
+</table>
 
 ## Overall autonomous car overview in a picture
 ![alt text](https://github.com/Udacity-CarND-TeamThinkLikeCar/System_Integration_Submission_TeamThinkLikeCar/blob/master/imgs/overall.png)
