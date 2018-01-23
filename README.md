@@ -66,12 +66,12 @@ The main goal of the project is to write different nodes of ROS, to be able to s
  
  <tr>
     <td>Car stopping on RED</td>
-    <td><img src="imgs/movegreen.png" width="150px" > </td>
+    <td><img src="imgs/stopred.png" width="450px" > </td>
  </tr>
  
  <tr>
     <td>Car moves back on GREEN</td>
-    <td> <img src="imgs/stopred.png" width="150px" > </td>
+    <td> <img src="imgs/movegreen.png" width="4500px" > </td>
  </tr>
  
 </table>
