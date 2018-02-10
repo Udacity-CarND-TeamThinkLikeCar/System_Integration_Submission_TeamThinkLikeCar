@@ -24,6 +24,8 @@ class TLDetector(object):
         self.pose = None
         self.waypoints = None 
         self.camera_image = None
+        self.waypoints_array = None
+
         self.lights = []
         self.stop_lines=[]
 
@@ -64,7 +66,8 @@ class TLDetector(object):
     def waypoints_cb(self, waypoints):
         rospy.logdebug("waypoints received....")
         self.waypoints = waypoints
-
+        self.waypoints_array = np.asarray([[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y, waypoint.pose.pose.position.z] for waypoint in
+                                    waypoints.waypoints])
     def traffic_cb(self, msg):
         self.lights = msg.lights
 
@@ -80,9 +83,8 @@ class TLDetector(object):
         self.has_image = True
         self.camera_image = msg
         
-        start = timeit.default_timer()
         light_wp, state = self.process_traffic_lights()
-        end = timeit.default_timer()
+
         '''
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
@@ -114,11 +116,9 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        if self.waypoints is not None:
+        if self.waypoints_array is not None:
             node = self.get_coordinates_vector(pose.position)
-            waypoints = np.asarray([[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y, waypoint.pose.pose.position.z] for waypoint in
-                                    self.waypoints.waypoints])
-            nearest_index = distance.cdist([node], waypoints).argmin()
+            nearest_index = distance.cdist([node], self.waypoints_array).argmin()
         else:
             rospy.logdebug("no  waypoints")
 
